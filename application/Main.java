@@ -57,6 +57,10 @@ public class Main extends Application {
   // represents no button (tile) having been selected
   public static final int[] NONE = new int[] {-1, -1};
   
+  private GridPane board;
+  private Tile[][] tiles;
+  private boolean whiteToPlay = true;
+  
   public static final int WINDOW_HEIGHT = 720;
   public static final int WINDOW_WIDTH = 784;
   public static final String APP_TITLE = "Chess";
@@ -73,15 +77,15 @@ public class Main extends Application {
     // saves command-line arguments
     args = this.getParameters().getRaw();
     
-    // creates a gridpane to display a chessboard
-    GridPane board = new GridPane();
+    // initializes a gridpane to display a chessboard
+    board = new GridPane();
     board.setMaxSize(8, 8);
     board.setMaxHeight(600);
     board.setMaxWidth(600);
     Scene mainScene = new Scene(board, WINDOW_WIDTH, WINDOW_HEIGHT);
     
-    // creates a 2D array of tiles to represent the chess board
-    Tile[][] tiles = new Tile[8][8];
+    // initializes a 2D array of tiles to represent the chess board
+    tiles = new Tile[8][8];
     
     // Images used in displaying the chess board
     FileInputStream image = new FileInputStream("./images/DarkTile.png");
@@ -138,9 +142,9 @@ public class Main extends Application {
     Image LBK = new Image(image310);
     
     // sets up the board display (essentially the 'front-end' of the chess game)
-    setupBoard(board);
+    setupBoard();
     // sets up the tiles (essentially the 'back-end' of the chess game)
-    setupTiles(tiles);
+    setupTiles();
     
     arg0.setTitle(APP_TITLE);
     arg0.setScene(mainScene);
@@ -154,7 +158,7 @@ public class Main extends Application {
    * @param board - the GridPane that holds the buttons displaying tiles on the board
    * @throws FileNotFoundException - if image files cannot be found
    */
-  private void setupBoard(GridPane board) throws FileNotFoundException {
+  private void setupBoard() throws FileNotFoundException {
     
     // Images used in displaying the chess board
     FileInputStream image = new FileInputStream("./images/DarkTile.png");
@@ -496,7 +500,7 @@ public class Main extends Application {
    * 
    * @param tiles - the 2D array of Tile objects to be filled
    */
-  private void setupTiles(Tile[][] tiles) {
+  private void setupTiles() {
     for (int i = 0; i < 8; i++) { // loop to create tiles for each rank
       for (int j = 0; j < 8; j++) { // loop to create tiles for each file
         // for ranks 3 - 6, set up the tiles such that they don't have pieces on them
@@ -606,9 +610,55 @@ public class Main extends Application {
    */
   private void buttonPressed(int i, int j) {
     if (pressed == NONE) {
-      pressed = new int[] {i, j};
+      // if there isn't a selected piece, and there isn't a piece on the selected button, nothing happens
+      if (tiles[i][j].getPieceColor() == 0) {
+        return; 
+      } 
+      // if a black piece is selected on whites turn, or a white piece selected on blacks turn, nothing happens
+      else if (tiles[i][j].getPieceColor() == 2 && whiteToPlay) {
+        return;
+      } else if (tiles[i][j].getPieceColor() == 1 && !whiteToPlay) {
+        return;
+      }
+      pressed = new int[] {i, j, tiles[i][j].getPieceColor(), tiles[i][j].getPiece()};
     } else {
-      
+      if (isLegalMove(pressed, i, j)) {
+        move(pressed[0], pressed[1], i, j);
+        if (whiteToPlay) {
+          whiteToPlay = false;
+        } else {
+          whiteToPlay = true;
+        }
+      } else {
+        pressed = NONE;
+        return; // TODO: display some sort of error if
+      }
     }
+  }
+
+  /**
+   * 
+   * 
+   * @param piece
+   * @param i
+   * @param j
+   * @return
+   */
+  private boolean isLegalMove(int[] piece, int i, int j) {
+    return true; // TODO: implement method
+  }
+  
+  /**
+   * 
+   * 
+   * @param fromI
+   * @param fromJ
+   * @param toI
+   * @param toJ
+   */
+  private void move(int fromI, int fromJ, int toI, int toJ) {
+    // TODO: implement method
+    // use tiles array to get piece at fromI/J, set gridpane button ImageView at fromI/J to a blank
+    // tile, and gridpane button ImageView at toI/J to a tile with that piece on it
   }
 }
