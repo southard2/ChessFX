@@ -178,7 +178,7 @@ public class Main extends Application {
           int I = i;
           int J = j;
           // sets up the button to be functional
-          btn.setOnAction(e -> buttonPressed(I, J));
+          btn.setOnAction(e -> buttonPressed(J, I));
           board.add(btn, i, j);
         } else if (i % 2 == 1 && j % 2 == 0) {
           Button btn = new Button();
@@ -189,7 +189,7 @@ public class Main extends Application {
           int I = i;
           int J = j;
           // sets up the button to be functional
-          btn.setOnAction(e -> buttonPressed(I, J));
+          btn.setOnAction(e -> buttonPressed(J, I));
           board.add(btn, i, j);
         } else if (i % 2 == 0 && j % 2 == 1) {
           Button btn = new Button();
@@ -200,7 +200,7 @@ public class Main extends Application {
           int I = i;
           int J = j;
           // sets up the button to be functional
-          btn.setOnAction(e -> buttonPressed(I, J));
+          btn.setOnAction(e -> buttonPressed(J, I));
           board.add(btn, i, j);
         } else {
           Button btn = new Button();
@@ -211,12 +211,15 @@ public class Main extends Application {
           int I = i;
           int J = j;
           // sets up the button to be functional
-          btn.setOnAction(e -> buttonPressed(I, J));
+          btn.setOnAction(e -> buttonPressed(J, I));
           board.add(btn, i, j);
         }
       }
     }
 
+    // NOTE: I switched around i and j in the next sections by mistake, but it doesn't lead to any
+    // functional differences
+    
     // this sets up the white side of the board using two for loops to display each tile in the 1
     // and 2 ranks of the chess board
     for (int i = 6; i < 8; i++) {
@@ -232,7 +235,7 @@ public class Main extends Application {
           int I = i;
           int J = j;
           // sets up the button to be functional
-          btn.setOnAction(e -> buttonPressed(I, J));
+          btn.setOnAction(e -> buttonPressed(J, I));
 
           // if the tile is meant to be light, have the button display a white pawn on a light tile
           if (j % 2 == 0) {
@@ -262,7 +265,7 @@ public class Main extends Application {
           int I = i;
           int J = j;
           // sets up the button to be functional
-          btn.setOnAction(e -> buttonPressed(I, J));
+          btn.setOnAction(e -> buttonPressed(J, I));
 
           // if the tile is on the 'a' file, display a white rook on a dark tile
           if (j == 0) {
@@ -347,7 +350,7 @@ public class Main extends Application {
           int I = i;
           int J = j;
           // sets up the button to be functional
-          btn.setOnAction(e -> buttonPressed(I, J));
+          btn.setOnAction(e -> buttonPressed(J, I));
 
           // if the tile is meant to be dark, have the button display a black pawn on a dark tile
           if (j % 2 == 0) {
@@ -377,7 +380,7 @@ public class Main extends Application {
           int I = i;
           int J = j;
           // sets up the button to be functional
-          btn.setOnAction(e -> buttonPressed(I, J));
+          btn.setOnAction(e -> buttonPressed(J, I));
 
           // if the tile is on the 'a' file, display a black rook on a light tile
           if (j == 0) {
@@ -456,98 +459,98 @@ public class Main extends Application {
    * @param tiles - the 2D array of Tile objects to be filled
    */
   private void setupTiles() {
-    for (int i = 0; i < 8; i++) { // loop to create tiles for each rank
-      for (int j = 0; j < 8; j++) { // loop to create tiles for each file
-        // for ranks 3 - 6, set up the tiles such that they don't have pieces on them
-        if (i > 1 && i < 5) {
+    for (int i = 0; i < 8; i++) { 
+      for (int j = 0; j < 8; j++) { 
+        // for ranks 3 - 6 (1<j<6), set up the tiles such that they don't have pieces on them
+        if (j > 1 && j < 6) {
           // creates light tiles and places them into the tile array
           if ((i % 2 == 0 && j % 2 == 1) || (i % 2 == 1 && j % 2 == 0)) {
             Tile tile = new Tile(0, 0, 0);
-            tiles[i][j] = tile;
+            tiles[j][i] = tile;
           }
           // creates dark tiles and places them into the tile array
           else {
             Tile tile = new Tile(1, 0, 0);
-            tiles[i][j] = tile;
+            tiles[j][i] = tile;
           }
         }
 
-        // for the 7th rank (i == 7), sets up alternating light/dark tiles with black pawns
-        if (i == 1) {
+        // for the 7th rank (j == 1), sets up alternating light/dark tiles with black pawns
+        if (j == 1) {
           if (j % 2 == 0) {
             Tile tile = new Tile(1, 2, P);
-            tiles[i][j] = tile;
+            tiles[j][i] = tile;
           } else {
             Tile tile = new Tile(0, 2, P);
-            tiles[i][j] = tile;
+            tiles[j][i] = tile;
           }
         }
-        // for the 2nd rank (i == 6), sets up alternating light/dark tiles with white pawns
-        if (i == 6) {
+        // for the 2nd rank (j == 6), sets up alternating light/dark tiles with white pawns
+        if (j == 6) {
           if (j % 2 == 0) {
             Tile tile = new Tile(0, 1, P);
-            tiles[i][j] = tile;
+            tiles[j][i] = tile;
           } else {
             Tile tile = new Tile(1, 1, P);
-            tiles[i][j] = tile;
+            tiles[j][i] = tile;
           }
         }
 
         // sets up black pieces on the 8th rank
-        if (i == 0) {
-          if (j == 0) {
+        if (j == 0) {
+          if (i == 0) {
             Tile tile = new Tile(0, 2, R);
-            tiles[i][j] = tile;
-          } else if (j == 1) {
+            tiles[j][i] = tile;
+          } else if (i == 1) {
             Tile tile = new Tile(1, 2, N);
-            tiles[i][j] = tile;
-          } else if (j == 2) {
+            tiles[j][i] = tile;
+          } else if (i == 2) {
             Tile tile = new Tile(0, 2, B);
-            tiles[i][j] = tile;
-          } else if (j == 3) {
+            tiles[j][i] = tile;
+          } else if (i == 3) {
             Tile tile = new Tile(1, 2, Q);
-            tiles[i][j] = tile;
-          } else if (j == 4) {
+            tiles[j][i] = tile;
+          } else if (i == 4) {
             Tile tile = new Tile(0, 2, K);
-            tiles[i][j] = tile;
-          } else if (j == 5) {
+            tiles[j][i] = tile;
+          } else if (i == 5) {
             Tile tile = new Tile(1, 2, B);
-            tiles[i][j] = tile;
-          } else if (j == 6) {
+            tiles[j][i] = tile;
+          } else if (i == 6) {
             Tile tile = new Tile(0, 2, N);
-            tiles[i][j] = tile;
+            tiles[j][i] = tile;
           } else {
             Tile tile = new Tile(1, 2, R);
-            tiles[i][j] = tile;
+            tiles[j][i] = tile;
           }
         }
 
         // sets up white pieces on the 1st rank
-        if (i == 7) {
-          if (j == 0) {
+        if (j == 7) {
+          if (i == 0) {
             Tile tile = new Tile(1, 1, R);
-            tiles[i][j] = tile;
-          } else if (j == 1) {
+            tiles[j][i] = tile;
+          } else if (i == 1) {
             Tile tile = new Tile(0, 1, N);
-            tiles[i][j] = tile;
-          } else if (j == 2) {
+            tiles[j][i] = tile;
+          } else if (i == 2) {
             Tile tile = new Tile(1, 1, B);
-            tiles[i][j] = tile;
-          } else if (j == 3) {
+            tiles[j][i] = tile;
+          } else if (i == 3) {
             Tile tile = new Tile(0, 1, Q);
-            tiles[i][j] = tile;
-          } else if (j == 4) {
+            tiles[j][i] = tile;
+          } else if (i == 4) {
             Tile tile = new Tile(1, 1, K);
-            tiles[i][j] = tile;
-          } else if (j == 5) {
+            tiles[j][i] = tile;
+          } else if (i == 5) {
             Tile tile = new Tile(0, 1, B);
-            tiles[i][j] = tile;
-          } else if (j == 6) {
+            tiles[j][i] = tile;
+          } else if (i == 6) {
             Tile tile = new Tile(1, 1, N);
-            tiles[i][j] = tile;
+            tiles[j][i] = tile;
           } else {
             Tile tile = new Tile(0, 2, R);
-            tiles[i][j] = tile;
+            tiles[j][i] = tile;
           }
         }
       }
@@ -753,7 +756,7 @@ public class Main extends Application {
 
     // updates the graphic on the "from" button
     Button fromBtn = getButton(fromI, fromJ);
-    if (fromI % 2 == fromJ % 2) {
+    if (fromI % 2 != fromJ % 2) {
       ImageView img = new ImageView(DarkTile);
       img.setFitHeight(80);
       img.setFitWidth(80);
@@ -771,7 +774,7 @@ public class Main extends Application {
       // row of board is on the opposite side, hence warranting a promotion)
       tiles[toI][toJ].setPiece(Q, pieceColor);
     } else {
-      tiles[toI][toJ].setPiece(piece, pieceColor);
+      tiles[toI][toJ].setPiece(pieceColor, piece);
     }
     
     
@@ -781,7 +784,7 @@ public class Main extends Application {
 
     // updates the graphic on the "to" button based on the tile color, as well as the piece type and
     // piece color of the piece moved onto the tile
-    if (toI % 2 == toJ % 2) { // these tiles are all dark
+    if (toI % 2 != toJ % 2) { // these tiles are all dark
       if (pieceColor == 1) { // 1 corresponds to a white piece
         if (piece == P) {
           // promotes the pawn if necessary
@@ -951,9 +954,9 @@ public class Main extends Application {
   /**
    * Gets the button found at i, j on the board GridPane
    * 
-   * @param i - the column the button is found at (in the GridPane)
-   * @param j - the row the button is found at (in the GridPane)
-   * @return - the Button found at I, J
+   * @param i - the row the button is found at (in the GridPane)
+   * @param j - the column the button is found at (in the GridPane)
+   * @return - the Button found at j, i
    */
   private Button getButton(int i, int j) {
     // gets the list of children (buttons) contained in board
@@ -962,7 +965,7 @@ public class Main extends Application {
     // checks each child to get the one with matching constraints, and returns the button which
     // is found at i, j on the gridpane
     for (Node node : children) {
-      if(board.getRowIndex(node) == j && board.getColumnIndex(node) == i) {
+      if(board.getRowIndex(node) == i && board.getColumnIndex(node) == j) {
         return (Button) node;
       }
     }
