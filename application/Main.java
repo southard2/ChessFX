@@ -1,9 +1,8 @@
 /**
- * Title: Chess
- * Files: Main.java, 
- * Start Date: 7/17/2020
- * End Date: -
- * Author: Danny Southard
+ * Title: Chess Files: Main.java
+ *  Start Date: 7/17/2020
+ *  End Date: - 
+ *  Author: Danny Southard
  */
 package application;
 
@@ -14,6 +13,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 import javafx.application.Application;
@@ -51,20 +51,20 @@ import javafx.stage.Stage;
  */
 public class Main extends Application {
   private List<String> args;
-  
-  // used to track the last button pressed
-  private int[] pressed = new int[] {-1, -1};
+
   // represents no button (tile) having been selected
   public static final int[] NONE = new int[] {-1, -1};
-  
+  //used to track the last button pressed
+  private int[] pressed = NONE;
+
   private GridPane board;
   private Tile[][] tiles;
   private boolean whiteToPlay = true;
-  
+
   public static final int WINDOW_HEIGHT = 720;
   public static final int WINDOW_WIDTH = 784;
   public static final String APP_TITLE = "Chess";
-  
+
   // used to more easily interpret the int that correspond to each piece
   public final int P = 0;
   public final int N = 1;
@@ -72,22 +72,41 @@ public class Main extends Application {
   public final int R = 3;
   public final int Q = 4;
   public final int K = 5;
-  
+
   public void start(Stage arg0) throws Exception {
     // saves command-line arguments
     args = this.getParameters().getRaw();
-    
+
     // initializes a gridpane to display a chessboard
     board = new GridPane();
     board.setMaxSize(8, 8);
     board.setMaxHeight(600);
     board.setMaxWidth(600);
     Scene mainScene = new Scene(board, WINDOW_WIDTH, WINDOW_HEIGHT);
-    
+
     // initializes a 2D array of tiles to represent the chess board
     tiles = new Tile[8][8];
-    
-    // Images used in displaying the chess board
+
+    // sets up the board display (essentially the 'front-end' of the chess game)
+    setupBoard();
+    // sets up the tiles (essentially the 'back-end' of the chess game)
+    setupTiles();
+
+    arg0.setTitle(APP_TITLE);
+    arg0.setScene(mainScene);
+    arg0.show();
+
+  }
+
+  /**
+   * Sets up the board display
+   * 
+   * @param board - the GridPane that holds the buttons displaying tiles on the board
+   * @throws FileNotFoundException - if image files cannot be found
+   */
+  private void setupBoard() throws FileNotFoundException {
+
+    // images used in displaying the chess board
     FileInputStream image = new FileInputStream("./images/DarkTile.png");
     Image DarkTile = new Image(image);
     FileInputStream image1 = new FileInputStream("./images/LightTile.png");
@@ -140,72 +159,6 @@ public class Main extends Application {
     Image DBK = new Image(image210);
     FileInputStream image310 = new FileInputStream("./images/LBK.png");
     Image LBK = new Image(image310);
-    
-    // sets up the board display (essentially the 'front-end' of the chess game)
-    setupBoard();
-    // sets up the tiles (essentially the 'back-end' of the chess game)
-    setupTiles();
-    
-    arg0.setTitle(APP_TITLE);
-    arg0.setScene(mainScene);
-    arg0.show();
-    
-  }
-  
-  /**
-   * Sets up the board display
-   * 
-   * @param board - the GridPane that holds the buttons displaying tiles on the board
-   * @throws FileNotFoundException - if image files cannot be found
-   */
-  private void setupBoard() throws FileNotFoundException {
-    
-    // Images used in displaying the chess board
-    FileInputStream image = new FileInputStream("./images/DarkTile.png");
-    Image DarkTile = new Image(image);
-    FileInputStream image1 = new FileInputStream("./images/LightTile.png");
-    Image LightTile = new Image(image1);
-    FileInputStream image2 = new FileInputStream("./images/DwP.png");
-    Image DWP = new Image(image2);
-    FileInputStream image3 = new FileInputStream("./images/LWP.png");
-    Image LWP = new Image(image3);
-    FileInputStream image20 = new FileInputStream("./images/DwB.png");
-    Image DWB = new Image(image20);
-    FileInputStream image30 = new FileInputStream("./images/LWB.png");
-    Image LWB = new Image(image30);
-    FileInputStream image21 = new FileInputStream("./images/DwN.png");
-    Image DWN = new Image(image21);
-    FileInputStream image31 = new FileInputStream("./images/LWN.png");
-    Image LWN = new Image(image31);
-    FileInputStream image22 = new FileInputStream("./images/DwR.png");
-    Image DWR = new Image(image22);
-    FileInputStream image32 = new FileInputStream("./images/LWR.png");
-    Image LWR = new Image(image32);
-    FileInputStream image33 = new FileInputStream("./images/LWQ.png");
-    Image LWQ = new Image(image33);
-    FileInputStream image24 = new FileInputStream("./images/DwK.png");
-    Image DWK = new Image(image24);
-    FileInputStream image25 = new FileInputStream("./images/DBP.png");
-    Image DBP = new Image(image25);
-    FileInputStream image35 = new FileInputStream("./images/LBP.png");
-    Image LBP = new Image(image35);
-    FileInputStream image26 = new FileInputStream("./images/DBB.png");
-    Image DBB = new Image(image26);
-    FileInputStream image36 = new FileInputStream("./images/LBB.png");
-    Image LBB = new Image(image36);
-    FileInputStream image27 = new FileInputStream("./images/DBN.png");
-    Image DBN = new Image(image27);
-    FileInputStream image37 = new FileInputStream("./images/LBN.png");
-    Image LBN = new Image(image37);
-    FileInputStream image28 = new FileInputStream("./images/DBR.png");
-    Image DBR = new Image(image28);
-    FileInputStream image38 = new FileInputStream("./images/LBR.png");
-    Image LBR = new Image(image38);
-    FileInputStream image29 = new FileInputStream("./images/DBQ.png");
-    Image DBQ = new Image(image29);
-    FileInputStream image310 = new FileInputStream("./images/LBK.png");
-    Image LBK = new Image(image310);
-    
     
     // This puts the empty center of the board into the gridpane
     for (int i = 0; i < 8; i++) {
@@ -268,8 +221,9 @@ public class Main extends Application {
     // and 2 ranks of the chess board
     for (int i = 6; i < 8; i++) {
       for (int j = 0; j < 8; j++) {
-        
-        // if i is 6 (which represents the 2 rank on a board in the grid pane), a pawn will be placed
+
+        // if i is 6 (which represents the 2 rank on a board in the grid pane), a pawn will be
+        // placed
         if (i == 6) {
           Button btn = new Button();
           btn.setMaxHeight(80);
@@ -279,7 +233,7 @@ public class Main extends Application {
           int J = j;
           // sets up the button to be functional
           btn.setOnAction(e -> buttonPressed(I, J));
-          
+
           // if the tile is meant to be light, have the button display a white pawn on a light tile
           if (j % 2 == 0) {
             ImageView lwp = new ImageView(LWP);
@@ -287,9 +241,9 @@ public class Main extends Application {
             lwp.setFitWidth(80);
             btn.setGraphic(lwp);
             board.add(btn, j, i);
-          } 
+          }
           // else, have the button display a white pawn on a dark tile
-          else { 
+          else {
             ImageView dwp = new ImageView(DWP);
             dwp.setFitHeight(80);
             dwp.setFitWidth(80);
@@ -297,7 +251,7 @@ public class Main extends Application {
             board.add(btn, j, i);
           }
         }
-        
+
         // if i is 7 (which represents the 1 rank on a chess board), you must display a piece that
         // corresponds to the file it is found in
         else {
@@ -309,7 +263,7 @@ public class Main extends Application {
           int J = j;
           // sets up the button to be functional
           btn.setOnAction(e -> buttonPressed(I, J));
-          
+
           // if the tile is on the 'a' file, display a white rook on a dark tile
           if (j == 0) {
             ImageView dwr = new ImageView(DWR);
@@ -377,13 +331,14 @@ public class Main extends Application {
         }
       }
     }
-    
+
     // this sets up the black side of the board using two for loops to display each tile in the 7
     // and 8 ranks of the chess board
     for (int i = 0; i < 2; i++) {
       for (int j = 0; j < 8; j++) {
-        
-        // if i is 1 (which represents the 7 rank on a board in the grid pane), a pawn will be placed
+
+        // if i is 1 (which represents the 7 rank on a board in the grid pane), a pawn will be
+        // placed
         if (i == 1) {
           Button btn = new Button();
           btn.setMaxHeight(80);
@@ -393,7 +348,7 @@ public class Main extends Application {
           int J = j;
           // sets up the button to be functional
           btn.setOnAction(e -> buttonPressed(I, J));
-          
+
           // if the tile is meant to be dark, have the button display a black pawn on a dark tile
           if (j % 2 == 0) {
             ImageView dbp = new ImageView(DBP);
@@ -401,9 +356,9 @@ public class Main extends Application {
             dbp.setFitWidth(80);
             btn.setGraphic(dbp);
             board.add(btn, j, i);
-          } 
+          }
           // else, have the button display a black pawn on a light tile
-          else { 
+          else {
             ImageView lbp = new ImageView(LBP);
             lbp.setFitHeight(80);
             lbp.setFitWidth(80);
@@ -411,7 +366,7 @@ public class Main extends Application {
             board.add(btn, j, i);
           }
         }
-        
+
         // if i is 0 (which represents the 8 rank on a chess board), you must display a piece that
         // corresponds to the file it is found in
         else {
@@ -423,7 +378,7 @@ public class Main extends Application {
           int J = j;
           // sets up the button to be functional
           btn.setOnAction(e -> buttonPressed(I, J));
-          
+
           // if the tile is on the 'a' file, display a black rook on a light tile
           if (j == 0) {
             ImageView lbr = new ImageView(LBR);
@@ -492,7 +447,7 @@ public class Main extends Application {
       }
     }
   }
-  
+
   /**
    * Sets up the 2D array of tiles with the correct set of tiles to start off the game
    * 
@@ -507,12 +462,12 @@ public class Main extends Application {
         if (i > 1 && i < 5) {
           // creates light tiles and places them into the tile array
           if ((i % 2 == 0 && j % 2 == 1) || (i % 2 == 1 && j % 2 == 0)) {
-            Tile tile = new Tile(0, 0, 0); 
+            Tile tile = new Tile(0, 0, 0);
             tiles[i][j] = tile;
-          } 
+          }
           // creates dark tiles and places them into the tile array
           else {
-            Tile tile = new Tile(1, 0, 0); 
+            Tile tile = new Tile(1, 0, 0);
             tiles[i][j] = tile;
           }
         }
@@ -522,8 +477,7 @@ public class Main extends Application {
           if (j % 2 == 0) {
             Tile tile = new Tile(1, 2, P);
             tiles[i][j] = tile;
-          }
-          else {
+          } else {
             Tile tile = new Tile(0, 2, P);
             tiles[i][j] = tile;
           }
@@ -533,13 +487,12 @@ public class Main extends Application {
           if (j % 2 == 0) {
             Tile tile = new Tile(0, 1, P);
             tiles[i][j] = tile;
-          }
-          else {
+          } else {
             Tile tile = new Tile(1, 1, P);
             tiles[i][j] = tile;
           }
         }
-        
+
         // sets up black pieces on the 8th rank
         if (i == 0) {
           if (j == 0) {
@@ -568,7 +521,7 @@ public class Main extends Application {
             tiles[i][j] = tile;
           }
         }
-        
+
         // sets up white pieces on the 1st rank
         if (i == 7) {
           if (j == 0) {
@@ -599,9 +552,9 @@ public class Main extends Application {
         }
       }
     }
-    
+
   }
-  
+
   /**
    * Deals with the pressing of buttons on the chess board
    * 
@@ -610,11 +563,13 @@ public class Main extends Application {
    */
   private void buttonPressed(int i, int j) {
     if (pressed == NONE) {
-      // if there isn't a selected piece, and there isn't a piece on the selected button, nothing happens
+      // if there isn't a selected piece, and there isn't a piece on the selected button, nothing
+      // happens
       if (tiles[i][j].getPieceColor() == 0) {
-        return; 
-      } 
-      // if a black piece is selected on whites turn, or a white piece selected on blacks turn, nothing happens
+        return;
+      }
+      // if a black piece is selected on whites turn, or a white piece selected on blacks turn,
+      // nothing happens
       else if (tiles[i][j].getPieceColor() == 2 && whiteToPlay) {
         return;
       } else if (tiles[i][j].getPieceColor() == 1 && !whiteToPlay) {
@@ -622,43 +577,396 @@ public class Main extends Application {
       }
       pressed = new int[] {i, j, tiles[i][j].getPieceColor(), tiles[i][j].getPiece()};
     } else {
+      // check if the move is legal (not including special moves
       if (isLegalMove(pressed, i, j)) {
-        move(pressed[0], pressed[1], i, j);
+        try {
+          move(pressed[0], pressed[1], i, j);
+          pressed = NONE;
+        } catch (FileNotFoundException e) {
+          e.printStackTrace();
+        }
         if (whiteToPlay) {
           whiteToPlay = false;
         } else {
           whiteToPlay = true;
         }
-      } else {
+      } // TODO: else if (isEnPassant()) and corresponding methods with seperate move
+        // instructions
+      else {
         pressed = NONE;
-        return; // TODO: display some sort of error if
+        return; // TODO: display some sort of error in GUI if move not valid
       }
     }
   }
 
   /**
+   * Checks that a selected move is legal
    * 
-   * 
-   * @param piece
-   * @param i
-   * @param j
+   * @param piece - array showing the piece selected to be moved
+   * @param i     - value representing the row of the button pushed
+   * @param j     - value representing the column of the button pushed
    * @return
    */
   private boolean isLegalMove(int[] piece, int i, int j) {
     return true; // TODO: implement method
   }
-  
+
   /**
+   * Gets a list of all moves a selected pawn can make
    * 
+   * @param i - value representing the row of the button pushed
+   * @param j - value representing the column of the button pushed
+   * @return - a list of int arrays, each representing a move
+   */
+  private List<int[]> getPawnMoves(int i, int j) {
+    return null;
+  }
+
+  /**
+   * Gets a list of all moves a selected knight can make
+   * 
+   * @param i - value representing the row of the button pushed
+   * @param j - value representing the column of the button pushed
+   * @return - a list of int arrays, each representing a move
+   */
+  private List<int[]> getKnightMoves(int i, int j) {
+    return null;
+  }
+
+  /**
+   * Gets a list of all moves a selected bishop can make
+   * 
+   * @param i - value representing the row of the button pushed
+   * @param j - value representing the column of the button pushed
+   * @return - a list of int arrays, each representing a move
+   */
+  private List<int[]> getBishopMoves(int i, int j) {
+    return null;
+  }
+
+  /**
+   * Gets a list of all moves a selected rook can make
+   * 
+   * @param i - value representing the row of the button pushed
+   * @param j - value representing the column of the button pushed
+   * @return - a list of int arrays, each representing a move
+   */
+  private List<int[]> getRookMoves(int i, int j) {
+    return null;
+  }
+
+  /**
+   * Gets a list of all moves a selected queen can make
+   * 
+   * @param i - value representing the row of the button pushed
+   * @param j - value representing the column of the button pushed
+   * @return - a list of int arrays, each representing a move
+   */
+  private List<int[]> getQueenMoves(int i, int j) {
+    return null;
+  }
+
+  /**
+   * Gets a list of all moves a selected king can make
+   * 
+   * @param i - value representing the row of the button pushed
+   * @param j - value representing the column of the button pushed
+   * @ @return - a list of int arrays, each representing a move
+   */
+  private List<int[]> getKingMoves(int i, int j, boolean isBlack) {
+    return null;
+  }
+
+  /**
+   * "Moves" a piece by changing the image views shown on both the tile it was on and the tile it is
+   * moved to
    * 
    * @param fromI
    * @param fromJ
    * @param toI
    * @param toJ
+   * @throws FileNotFoundException
    */
-  private void move(int fromI, int fromJ, int toI, int toJ) {
-    // TODO: implement method
+  private void move(int fromI, int fromJ, int toI, int toJ) throws FileNotFoundException {
     // use tiles array to get piece at fromI/J, set gridpane button ImageView at fromI/J to a blank
     // tile, and gridpane button ImageView at toI/J to a tile with that piece on it
+    
+    // images used in displaying the chess board
+    FileInputStream image = new FileInputStream("./images/DarkTile.png");
+    Image DarkTile = new Image(image);
+    FileInputStream image1 = new FileInputStream("./images/LightTile.png");
+    Image LightTile = new Image(image1);
+    FileInputStream image2 = new FileInputStream("./images/DwP.png");
+    Image DWP = new Image(image2);
+    FileInputStream image3 = new FileInputStream("./images/LWP.png");
+    Image LWP = new Image(image3);
+    FileInputStream image20 = new FileInputStream("./images/DwB.png");
+    Image DWB = new Image(image20);
+    FileInputStream image30 = new FileInputStream("./images/LWB.png");
+    Image LWB = new Image(image30);
+    FileInputStream image21 = new FileInputStream("./images/DwN.png");
+    Image DWN = new Image(image21);
+    FileInputStream image31 = new FileInputStream("./images/LWN.png");
+    Image LWN = new Image(image31);
+    FileInputStream image22 = new FileInputStream("./images/DwR.png");
+    Image DWR = new Image(image22);
+    FileInputStream image32 = new FileInputStream("./images/LWR.png");
+    Image LWR = new Image(image32);
+    FileInputStream image23 = new FileInputStream("./images/DwQ.png");
+    Image DWQ = new Image(image23);
+    FileInputStream image33 = new FileInputStream("./images/LWQ.png");
+    Image LWQ = new Image(image33);
+    FileInputStream image24 = new FileInputStream("./images/DwK.png");
+    Image DWK = new Image(image24);
+    FileInputStream image34 = new FileInputStream("./images/LWK.png");
+    Image LWK = new Image(image34);
+    FileInputStream image25 = new FileInputStream("./images/DBP.png");
+    Image DBP = new Image(image25);
+    FileInputStream image35 = new FileInputStream("./images/LBP.png");
+    Image LBP = new Image(image35);
+    FileInputStream image26 = new FileInputStream("./images/DBB.png");
+    Image DBB = new Image(image26);
+    FileInputStream image36 = new FileInputStream("./images/LBB.png");
+    Image LBB = new Image(image36);
+    FileInputStream image27 = new FileInputStream("./images/DBN.png");
+    Image DBN = new Image(image27);
+    FileInputStream image37 = new FileInputStream("./images/LBN.png");
+    Image LBN = new Image(image37);
+    FileInputStream image28 = new FileInputStream("./images/DBR.png");
+    Image DBR = new Image(image28);
+    FileInputStream image38 = new FileInputStream("./images/LBR.png");
+    Image LBR = new Image(image38);
+    FileInputStream image29 = new FileInputStream("./images/DBQ.png");
+    Image DBQ = new Image(image29);
+    FileInputStream image39 = new FileInputStream("./images/LBQ.png");
+    Image LBQ = new Image(image39);
+    FileInputStream image210 = new FileInputStream("./images/DBK.png");
+    Image DBK = new Image(image210);
+    FileInputStream image310 = new FileInputStream("./images/LBK.png");
+    Image LBK = new Image(image310);
+
+    // saves the piece/piece color of the "to"/"from" tiles, and adjusts the values in that tile to
+    // be a blank dark/light tile
+    int piece = tiles[fromI][fromJ].getPiece();
+    int pieceColor = tiles[fromI][fromJ].getPieceColor();
+    tiles[fromI][fromJ].setPiece(0, 0);
+
+    // updates the graphic on the "from" button
+    Button fromBtn = getButton(fromI, fromJ);
+    if (fromI % 2 == fromJ % 2) {
+      ImageView img = new ImageView(DarkTile);
+      img.setFitHeight(80);
+      img.setFitWidth(80);
+      fromBtn.setGraphic(img);
+    } else {
+      ImageView img = new ImageView(LightTile);
+      img.setFitHeight(80);
+      img.setFitWidth(80);
+      fromBtn.setGraphic(img);
+    }
+    
+    // updates the piece values found in the "to" tile in the tiles array
+    if (piece == P && (toI == 7 || toI == 0)) {
+      // auto-promotes a pawn to a queen if pawn moved to last row (the only way a pawn gets to last
+      // row of board is on the opposite side, hence warranting a promotion)
+      tiles[toI][toJ].setPiece(Q, pieceColor);
+    } else {
+      tiles[toI][toJ].setPiece(piece, pieceColor);
+    }
+    
+    
+    
+    // gets the "to" button
+    Button toBtn = getButton(toI, toJ);
+
+    // updates the graphic on the "to" button based on the tile color, as well as the piece type and
+    // piece color of the piece moved onto the tile
+    if (toI % 2 == toJ % 2) { // these tiles are all dark
+      if (pieceColor == 1) { // 1 corresponds to a white piece
+        if (piece == P) {
+          // promotes the pawn if necessary
+          if (toI == 0) {
+            ImageView img = new ImageView(DWQ);
+            img.setFitHeight(80);
+            img.setFitWidth(80);
+            toBtn.setGraphic(img);
+          } else {
+            ImageView img = new ImageView(DWP);
+            img.setFitHeight(80);
+            img.setFitWidth(80);
+            toBtn.setGraphic(img);
+          }
+        } else if (piece == N) {
+          ImageView img = new ImageView(DWN);
+          img.setFitHeight(80);
+          img.setFitWidth(80);
+          toBtn.setGraphic(img);
+        } else if (piece == B) {
+          ImageView img = new ImageView(DWB);
+          img.setFitHeight(80);
+          img.setFitWidth(80);
+          toBtn.setGraphic(img);
+        } else if (piece == R) {
+          ImageView img = new ImageView(DWR);
+          img.setFitHeight(80);
+          img.setFitWidth(80);
+          toBtn.setGraphic(img);
+        } else if (piece == Q) {
+          ImageView img = new ImageView(DWQ);
+          img.setFitHeight(80);
+          img.setFitWidth(80);
+          toBtn.setGraphic(img);
+        } else {
+          ImageView img = new ImageView(DWK);
+          img.setFitHeight(80);
+          img.setFitWidth(80);
+          toBtn.setGraphic(img);
+        }
+      } else if (pieceColor == 2) { // 2 corresponds to a black piece
+        if (piece == P) {
+          // promotes the pawn if necessary
+          if (toI == 7) {
+            ImageView img = new ImageView(DBQ);
+            img.setFitHeight(80);
+            img.setFitWidth(80);
+            toBtn.setGraphic(img);
+          } else {
+            ImageView img = new ImageView(DBP);
+            img.setFitHeight(80);
+            img.setFitWidth(80);
+            toBtn.setGraphic(img);
+          }
+        } else if (piece == N) {
+          ImageView img = new ImageView(DBN);
+          img.setFitHeight(80);
+          img.setFitWidth(80);
+          toBtn.setGraphic(img);
+        } else if (piece == B) {
+          ImageView img = new ImageView(DBB);
+          img.setFitHeight(80);
+          img.setFitWidth(80);
+          toBtn.setGraphic(img);
+        } else if (piece == R) {
+          ImageView img = new ImageView(DBR);
+          img.setFitHeight(80);
+          img.setFitWidth(80);
+          toBtn.setGraphic(img);
+        } else if (piece == Q) {
+          ImageView img = new ImageView(DBQ);
+          img.setFitHeight(80);
+          img.setFitWidth(80);
+          toBtn.setGraphic(img);
+        } else {
+          ImageView img = new ImageView(DBK);
+          img.setFitHeight(80);
+          img.setFitWidth(80);
+          toBtn.setGraphic(img);
+        }
+      }
+    } else { // these tiles are all light
+      if (pieceColor == 1) { // 1 corresponds to a white piece
+        if (piece == P) {
+          // promotes the pawn if necessary
+          if (toI == 0) {
+            ImageView img = new ImageView(LWQ);
+            img.setFitHeight(80);
+            img.setFitWidth(80);
+            toBtn.setGraphic(img);
+          } else {
+            ImageView img = new ImageView(LWP);
+            img.setFitHeight(80);
+            img.setFitWidth(80);
+            toBtn.setGraphic(img);
+          }
+        } else if (piece == N) {
+          ImageView img = new ImageView(LWN);
+          img.setFitHeight(80);
+          img.setFitWidth(80);
+          toBtn.setGraphic(img);
+        } else if (piece == B) {
+          ImageView img = new ImageView(LWB);
+          img.setFitHeight(80);
+          img.setFitWidth(80);
+          toBtn.setGraphic(img);
+        } else if (piece == R) {
+          ImageView img = new ImageView(LWR);
+          img.setFitHeight(80);
+          img.setFitWidth(80);
+          toBtn.setGraphic(img);
+        } else if (piece == Q) {
+          ImageView img = new ImageView(LWQ);
+          img.setFitHeight(80);
+          img.setFitWidth(80);
+          toBtn.setGraphic(img);
+        } else {
+          ImageView img = new ImageView(LWK);
+          img.setFitHeight(80);
+          img.setFitWidth(80);
+          toBtn.setGraphic(img);
+        }
+      } else if (pieceColor == 2) { // 2 corresponds to a black piece
+        if (piece == P) {
+          // promotes the pawn if necessary
+          if (toI == 7) {
+            ImageView img = new ImageView(LBQ);
+            img.setFitHeight(80);
+            img.setFitWidth(80);
+            toBtn.setGraphic(img);
+          } else {
+            ImageView img = new ImageView(LBP);
+            img.setFitHeight(80);
+            img.setFitWidth(80);
+            toBtn.setGraphic(img);
+          }
+        } else if (piece == N) {
+          ImageView img = new ImageView(LBN);
+          img.setFitHeight(80);
+          img.setFitWidth(80);
+          toBtn.setGraphic(img);
+        } else if (piece == B) {
+          ImageView img = new ImageView(LBB);
+          img.setFitHeight(80);
+          img.setFitWidth(80);
+          toBtn.setGraphic(img);
+        } else if (piece == R) {
+          ImageView img = new ImageView(LBR);
+          img.setFitHeight(80);
+          img.setFitWidth(80);
+          toBtn.setGraphic(img);
+        } else if (piece == Q) {
+          ImageView img = new ImageView(LBQ);
+          img.setFitHeight(80);
+          img.setFitWidth(80);
+          toBtn.setGraphic(img);
+        } else {
+          ImageView img = new ImageView(LBK);
+          img.setFitHeight(80);
+          img.setFitWidth(80);
+          toBtn.setGraphic(img);
+        }
+      }
+    }
+  }
+  
+  /**
+   * Gets the button found at i, j on the board GridPane
+   * 
+   * @param i - the column the button is found at (in the GridPane)
+   * @param j - the row the button is found at (in the GridPane)
+   * @return - the Button found at I, J
+   */
+  private Button getButton(int i, int j) {
+    // gets the list of children (buttons) contained in board
+    ObservableList<Node> children = board.getChildren();
+
+    // checks each child to get the one with matching constraints, and returns the button which
+    // is found at i, j on the gridpane
+    for (Node node : children) {
+      if(board.getRowIndex(node) == j && board.getColumnIndex(node) == i) {
+        return (Button) node;
+      }
+    }
+    // else return null
+    return null;
   }
 }

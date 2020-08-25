@@ -48,6 +48,15 @@ public class Tile {
   }
   
   /**
+   * Getter method for the int value for the color of the given tile
+   * 
+   * @return the int value for the piece on the tile
+   */
+  public int getColor() {
+    return values[0];
+  }
+  
+  /**
    * Getter method for the int value for the piece color for the given tile
    * 
    * @return the int value for the color of the piece stored in the tile
