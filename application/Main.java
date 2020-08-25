@@ -217,9 +217,9 @@ public class Main extends Application {
       }
     }
 
-    // NOTE: I switched around i and j in the next sections by mistake, but it doesn't lead to any
-    // functional differences
-    
+    // NOTE: I switched around i and j a bunch in the next sections by mistake, but it doesn't lead
+    // to any functional differences
+
     // this sets up the white side of the board using two for loops to display each tile in the 1
     // and 2 ranks of the chess board
     for (int i = 6; i < 8; i++) {
@@ -235,7 +235,7 @@ public class Main extends Application {
           int I = i;
           int J = j;
           // sets up the button to be functional
-          btn.setOnAction(e -> buttonPressed(J, I));
+          btn.setOnAction(e -> buttonPressed(I, J));
 
           // if the tile is meant to be light, have the button display a white pawn on a light tile
           if (j % 2 == 0) {
@@ -265,7 +265,7 @@ public class Main extends Application {
           int I = i;
           int J = j;
           // sets up the button to be functional
-          btn.setOnAction(e -> buttonPressed(J, I));
+          btn.setOnAction(e -> buttonPressed(I, J));
 
           // if the tile is on the 'a' file, display a white rook on a dark tile
           if (j == 0) {
@@ -350,7 +350,7 @@ public class Main extends Application {
           int I = i;
           int J = j;
           // sets up the button to be functional
-          btn.setOnAction(e -> buttonPressed(J, I));
+          btn.setOnAction(e -> buttonPressed(I, J));
 
           // if the tile is meant to be dark, have the button display a black pawn on a dark tile
           if (j % 2 == 0) {
@@ -380,7 +380,7 @@ public class Main extends Application {
           int I = i;
           int J = j;
           // sets up the button to be functional
-          btn.setOnAction(e -> buttonPressed(J, I));
+          btn.setOnAction(e -> buttonPressed(I, J));
 
           // if the tile is on the 'a' file, display a black rook on a light tile
           if (j == 0) {
@@ -956,7 +956,7 @@ public class Main extends Application {
    * 
    * @param i - the row the button is found at (in the GridPane)
    * @param j - the column the button is found at (in the GridPane)
-   * @return - the Button found at j, i
+   * @return - the Button found at the given row/col
    */
   private Button getButton(int i, int j) {
     // gets the list of children (buttons) contained in board
