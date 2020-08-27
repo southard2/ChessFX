@@ -549,7 +549,7 @@ public class Main extends Application {
             Tile tile = new Tile(1, 1, N);
             tiles[j][i] = tile;
           } else {
-            Tile tile = new Tile(0, 2, R);
+            Tile tile = new Tile(0, 1, R);
             tiles[j][i] = tile;
           }
         }
