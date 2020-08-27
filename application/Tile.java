@@ -1,17 +1,21 @@
 /**
- * Title: Tile.java
- * Files:  
- * Program function:
- * Author: 
- * Email: 
- * Class:
- * Lecture No.: 
- * Semester:
+ * Title: Chess 
+ * Files: Main.java, Tile.java 
+ * Start Date: 7/17/2020 
+ * End Date: - 
+ * Author: Danny Southard
+ * 
+ * Note - I completed this project mostly on my own, but did use google to resolve issues I had in
+ * figuring out some of JavaFX's mechanics. I did not copy any code from the internet, a part from
+ * tiny bits such as the color red '#ff0000' used in the tryAgain label that I could not figure out
+ * otherwise. I do not intend to make any money off of this project, this is/has been a passion
+ * project and a way for me to challenge myself.
  */
 package application;
 
 /**
- * Tile - Purpose of class
+ * Tile - ADT to represent a square on a chess board, holding int values representing its color, as
+ * well as the piece (or lack thereof) on it
  *
  * @author Danny Southard
  */

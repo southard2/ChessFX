@@ -1,8 +1,15 @@
 /**
- * Title: Chess Files: Main.java
- *  Start Date: 7/17/2020
- *  End Date: - 
- *  Author: Danny Southard
+ * Title: Chess 
+ * Files: Main.java, Tile.java 
+ * Start Date: 7/17/2020 
+ * End Date: - 
+ * Author: Danny Southard
+ * 
+ * Note - I completed this project mostly on my own, but did use google to resolve issues I had in
+ * figuring out some of JavaFX's mechanics. I did not copy any code from the internet, a part from
+ * tiny bits such as the color red '#ff0000' used in the tryAgain label that I could not figure out
+ * otherwise. I do not intend to make any money off of this project, this is/has been a passion
+ * project and a way for me to challenge myself.
  */
 package application;
 
@@ -45,7 +52,7 @@ import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
 /**
- * Main - GUI showing the chess board
+ * Main - GUI showing the playable chess board. Contains back end tile array as well.
  *
  * @author Danny Southard
  */
@@ -61,10 +68,15 @@ public class Main extends Application {
   private Tile[][] tiles;
   private boolean whiteToPlay = true;
 
+  // general properties to be used in making the gui
   public static final int WINDOW_HEIGHT = 720;
-  public static final int WINDOW_WIDTH = 784;
+  public static final int WINDOW_WIDTH = 1100;
   public static final String APP_TITLE = "Chess";
 
+  // labels to allow for dynamic words in the gui
+  Label toPlay = new Label("White to play.");
+  Label tryAgain = new Label("");
+  
   // used to more easily interpret the int that correspond to each piece
   public final int P = 0;
   public final int N = 1;
@@ -82,7 +94,15 @@ public class Main extends Application {
     board.setMaxSize(8, 8);
     board.setMaxHeight(600);
     board.setMaxWidth(600);
-    Scene mainScene = new Scene(board, WINDOW_WIDTH, WINDOW_HEIGHT);
+    
+    // sets up a VBox containing alerts for checks/mates, who is to play, and error messages
+    VBox text = new VBox(toPlay, tryAgain);
+    text.setSpacing(3);
+    tryAgain.setTextFill(Color.web("#ff0000")); // sets the color of the 
+    
+    // sets up a HBox with the board and text alerts, and makes a scene with that HBox
+    HBox gui = new HBox(board, text);
+    Scene mainScene = new Scene(gui, WINDOW_WIDTH, WINDOW_HEIGHT);
 
     // initializes a 2D array of tiles to represent the chess board
     tiles = new Tile[8][8];
@@ -569,16 +589,22 @@ public class Main extends Application {
       // if there isn't a selected piece, and there isn't a piece on the selected button, nothing
       // happens
       if (tiles[i][j].getPieceColor() == 0) {
+        tryAgain.setText("No piece found, try again!");
         return;
       }
       // if a black piece is selected on whites turn, or a white piece selected on blacks turn,
       // nothing happens
       else if (tiles[i][j].getPieceColor() == 2 && whiteToPlay) {
+        tryAgain.setText("A white piece must be moved on white's turn.");
         return;
       } else if (tiles[i][j].getPieceColor() == 1 && !whiteToPlay) {
+        tryAgain.setText("A black piece must be moved on black's turn.");
         return;
+      } else { // else if a 'correct' piece is selected, clear the error message and set the piece
+               // as the selected one
+        tryAgain.setText("");
+        pressed = new int[] {i, j, tiles[i][j].getPieceColor(), tiles[i][j].getPiece()};
       }
-      pressed = new int[] {i, j, tiles[i][j].getPieceColor(), tiles[i][j].getPiece()};
     } else {
       // check if the move is legal (not including special moves
       if (isLegalMove(pressed, i, j)) {
@@ -590,14 +616,20 @@ public class Main extends Application {
         }
         if (whiteToPlay) {
           whiteToPlay = false;
+          toPlay.setText("Black to play");
+          tryAgain.setText("");
         } else {
           whiteToPlay = true;
+          toPlay.setText("White to play.");
+          tryAgain.setText("");
         }
       } // TODO: else if (isEnPassant()) and corresponding methods with seperate move
         // instructions
       else {
         pressed = NONE;
-        return; // TODO: display some sort of error in GUI if move not valid
+        tryAgain.setText(
+            "Illegal move, try again!\n\n(You must select the piece you intend to move again)");
+        return;
       }
     }
   }
