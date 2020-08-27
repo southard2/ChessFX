@@ -21,6 +21,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 import javafx.application.Application;
@@ -70,7 +71,7 @@ public class Main extends Application {
 
   // general properties to be used in making the gui
   public static final int WINDOW_HEIGHT = 720;
-  public static final int WINDOW_WIDTH = 1100;
+  public static final int WINDOW_WIDTH = 1150;
   public static final String APP_TITLE = "Chess";
 
   // labels to allow for dynamic words in the gui
@@ -653,27 +654,32 @@ public class Main extends Application {
     
     // gets the list of all legal moves dependant on piece type via helper methods
     if (pieceType == P) {
-      legalMoves = getPawnMoves(fromI, fromJ);
+      legalMoves = getPawnMoves(fromI, fromJ, pieceColor);
+      return true; // used to see if bishop working
     } else if (pieceType == N) {
-      legalMoves = getKnightMoves(fromI, fromJ);
+      legalMoves = getKnightMoves(fromI, fromJ, pieceColor);
     } else if (pieceType == B) {
-      legalMoves = getBishopMoves(fromI, fromJ);
+      legalMoves = getBishopMoves(fromI, fromJ, pieceColor);
     } else if (pieceType == R) {
-      legalMoves = getRookMoves(fromI, fromJ);
+      legalMoves = getRookMoves(fromI, fromJ, pieceColor);
     } else if (pieceType == Q) {
-      legalMoves = getQueenMoves(fromI, fromJ);
+      legalMoves = getQueenMoves(fromI, fromJ, pieceColor);
     } else if (pieceType == K) {
-      legalMoves = getKingMoves(fromI, fromJ);
+      legalMoves = getKingMoves(fromI, fromJ, pieceColor);
     }
 
-    // returns false if the proposed move is not found in the list of legal moves, else returns true
-    int[] proposedMove = new int[] {i, j};
-//    if (legalMoves.indexOf(proposedMove) == -1) {
-//      return false;
-//    } else {
-//      return true;
-//    }
-    return true;
+    // returns false if the list of legal moves is null
+    if (legalMoves == null) {
+      return false;
+    } else { // else returns true if the move is found in the list of legal moves, and false if not
+             // found
+      for (int[] move : legalMoves) {
+        if (Arrays.equals(move, new int[] {i, j})) {
+          return true;
+        }
+      }
+      return false;
+    }
   }
 
   /**
@@ -683,7 +689,7 @@ public class Main extends Application {
    * @param j - value representing the column of the button pushed
    * @return - a list of int arrays, each representing a move
    */
-  private List<int[]> getPawnMoves(int i, int j) {
+  private List<int[]> getPawnMoves(int i, int j, int pieceColor) {
     return null;
   }
 
@@ -694,8 +700,95 @@ public class Main extends Application {
    * @param j - value representing the column of the button pushed
    * @return - a list of int arrays, each representing a move
    */
-  private List<int[]> getKnightMoves(int i, int j) {
-    return null;
+  private List<int[]> getKnightMoves(int i, int j, int pieceColor) {
+    // creates a list to store all moves the knight can make
+    List<int[]> moves = new ArrayList<int[]>();
+    
+    
+    // checks individually each of eight possible moves for the knight
+    
+    int i1 = i + 1;
+    int j1 = j + 2;
+    if (i1 > 7 || i1 < 0 || j1 > 7 || j1 < 0) {
+      ;
+    } else if (tiles[i1][j1].getPieceColor() == pieceColor) {
+      ;
+    } else {
+      moves.add(new int[] {i1, j1});
+    }
+    
+    i1 = i + 1;
+    j1 = j - 2;
+    if (i1 > 7 || i1 < 0 || j1 > 7 || j1 < 0) {
+      ;
+    } else if (tiles[i1][j1].getPieceColor() == pieceColor) {
+      ;
+    } else {
+      moves.add(new int[] {i1, j1});
+    }
+    
+    i1 = i + 2;
+    j1 = j + 1;
+    if (i1 > 7 || i1 < 0 || j1 > 7 || j1 < 0) {
+      ;
+    } else if (tiles[i1][j1].getPieceColor() == pieceColor) {
+      ;
+    } else {
+      moves.add(new int[] {i1, j1});
+    }
+    
+    i1 = i + 2;
+    j1 = j - 1;
+    if (i1 > 7 || i1 < 0 || j1 > 7 || j1 < 0) {
+      ;
+    } else if (tiles[i1][j1].getPieceColor() == pieceColor) {
+      ;
+    } else {
+      moves.add(new int[] {i1, j1});
+    }
+    
+    i1 = i - 1;
+    j1 = j + 2;
+    if (i1 > 7 || i1 < 0 || j1 > 7 || j1 < 0) {
+      ;
+    } else if (tiles[i1][j1].getPieceColor() == pieceColor) {
+      ;
+    } else {
+      moves.add(new int[] {i1, j1});
+    }
+    
+    i1 = i - 1;
+    j1 = j - 2;
+    if (i1 > 7 || i1 < 0 || j1 > 7 || j1 < 0) {
+      ;
+    } else if (tiles[i1][j1].getPieceColor() == pieceColor) {
+      ;
+    } else {
+      moves.add(new int[] {i1, j1});
+    }
+    
+    i1 = i - 2;
+    j1 = j + 1;
+    if (i1 > 7 || i1 < 0 || j1 > 7 || j1 < 0) {
+      ;
+    } else if (tiles[i1][j1].getPieceColor() == pieceColor) {
+      ;
+    } else {
+      moves.add(new int[] {i1, j1});
+    }
+    
+    i1 = i - 2;
+    j1 = j - 1;
+    if (i1 > 7 || i1 < 0 || j1 > 7 || j1 < 0) {
+      ;
+    } else if (tiles[i1][j1].getPieceColor() == pieceColor) {
+      ;
+    } else {
+      moves.add(new int[] {i1, j1});
+    }
+
+    // after checking all eight possible moves, returns the list of all legal moves for the knight
+    return moves;
   }
 
   /**
@@ -705,8 +798,63 @@ public class Main extends Application {
    * @param j - value representing the column of the button pushed
    * @return - a list of int arrays, each representing a move
    */
-  private List<int[]> getBishopMoves(int i, int j) {
-    return null;
+  private List<int[]> getBishopMoves(int i, int j, int pieceColor) {
+    // creates a list used to store moves found for the bishop
+    List<int[]> moves = new ArrayList<int[]>();
+    
+    // checks which moves can be made moving down and right across the board
+    for (int x = i + 1, y = j + 1; x < 8 && y < 8; x++, y++) {
+      int[] tile = new int[] {x, y};
+      if (tiles[x][y].getPieceColor() == 0) {
+        moves.add(tile);
+      } else if (tiles[x][y].getPieceColor() == pieceColor) {
+        break;
+      } else {
+        moves.add(tile);
+        break;
+      }
+    }
+    
+    // checks which moves can be made moving down and left across the board
+    for (int x = i + 1, y = j - 1; x < 8 && y >= 0; x++, y--) {
+      int[] tile = new int[] {x, y};
+      if (tiles[x][y].getPieceColor() == 0) {
+        moves.add(tile);
+      } else if (tiles[x][y].getPieceColor() == pieceColor) {
+        break;
+      } else {
+        moves.add(tile);
+        break;
+      }
+    }
+    
+    // checks which moves can be made moving up and right across the board
+    for (int x = i - 1, y = j + 1; x >= 0 && y < 8; x--, y++) {
+      int[] tile = new int[] {x, y};
+      if (tiles[x][y].getPieceColor() == 0) {
+        moves.add(tile);
+      } else if (tiles[x][y].getPieceColor() == pieceColor) {
+        break;
+      } else {
+        moves.add(tile);
+        break;
+      }
+    }
+    
+    // checks which moves can be made moving up and left across the board
+    for (int x = i - 1, y = j - 1; x >= 0 && y >= 0; x--, y--) {
+      int[] tile = new int[] {x, y};
+      if (tiles[x][y].getPieceColor() == 0) {
+        moves.add(tile);
+      } else if (tiles[x][y].getPieceColor() == pieceColor) {
+        break;
+      } else {
+        moves.add(tile);
+        break;
+      }
+    }
+    // returns the list of moves
+    return moves;
   }
 
   /**
@@ -716,8 +864,63 @@ public class Main extends Application {
    * @param j - value representing the column of the button pushed
    * @return - a list of int arrays, each representing a move
    */
-  private List<int[]> getRookMoves(int i, int j) {
-    return null;
+  private List<int[]> getRookMoves(int i, int j, int pieceColor) {
+    // creates a list used to store moves found for the rook
+    List<int[]> moves = new ArrayList<int[]>();
+    
+    // checks for moves made moving down on the board
+    for (int x = i + 1; x < 8; x++) {
+      int[] tile = new int[] {x, j};
+      if (tiles[x][j].getPieceColor() == 0) {
+        moves.add(tile);
+      } else if (tiles[x][j].getPieceColor() == pieceColor) {
+        break;
+      } else {
+        moves.add(tile);
+        break;
+      }
+    }
+    
+    // checks for moves made moving up on the board
+    for (int x = i - 1; x >= 0; x--) {
+      int[] tile = new int[] {x, j};
+      if (tiles[x][j].getPieceColor() == 0) {
+        moves.add(tile);
+      } else if (tiles[x][j].getPieceColor() == pieceColor) {
+        break;
+      } else {
+        moves.add(tile);
+        break;
+      }
+    }
+    
+    // checks for moves made moving right on the board
+    for (int y = j + 1; y < 8; y++) {
+      int[] tile = new int[] {i, y};
+      if (tiles[i][y].getPieceColor() == 0) {
+        moves.add(tile);
+      } else if (tiles[i][y].getPieceColor() == pieceColor) {
+        break;
+      } else {
+        moves.add(tile);
+        break;
+      }
+    }
+    
+    // checks for moves made moving left on the board
+    for (int y = j - 1; y >= 0; y--) {
+      int[] tile = new int[] {i, y};
+      if (tiles[i][y].getPieceColor() == 0) {
+        moves.add(tile);
+      } else if (tiles[i][y].getPieceColor() == pieceColor) {
+        break;
+      } else {
+        moves.add(tile);
+        break;
+      }
+    }
+    
+    return moves;
   }
 
   /**
@@ -727,8 +930,15 @@ public class Main extends Application {
    * @param j - value representing the column of the button pushed
    * @return - a list of int arrays, each representing a move
    */
-  private List<int[]> getQueenMoves(int i, int j) {
-    return null;
+  private List<int[]> getQueenMoves(int i, int j, int pieceColor) {
+    // creates a list to store all moves the queen can make
+    List<int[]> moves = new ArrayList<int[]>();
+    
+    // 
+    moves.addAll(getBishopMoves(i, j, pieceColor));
+    moves.addAll(getRookMoves(i, j, pieceColor));
+    
+    return moves;
   }
 
   /**
@@ -738,7 +948,7 @@ public class Main extends Application {
    * @param j - value representing the column of the button pushed
    * @ @return - a list of int arrays, each representing a move
    */
-  private List<int[]> getKingMoves(int i, int j) {
+  private List<int[]> getKingMoves(int i, int j, int pieceColor) {
     return null;
   }
 
