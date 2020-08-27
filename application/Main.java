@@ -643,7 +643,37 @@ public class Main extends Application {
    * @return
    */
   private boolean isLegalMove(int[] piece, int i, int j) {
-    return true; // TODO: implement method
+    int fromI = piece[0];
+    int fromJ = piece[1];
+    int pieceType = piece[3];
+    int pieceColor = piece[2];
+    
+    // initializes a list to be used to store all legal moves for a piece
+    List<int[]> legalMoves = null;
+    
+    // gets the list of all legal moves dependant on piece type via helper methods
+    if (pieceType == P) {
+      legalMoves = getPawnMoves(fromI, fromJ);
+    } else if (pieceType == N) {
+      legalMoves = getKnightMoves(fromI, fromJ);
+    } else if (pieceType == B) {
+      legalMoves = getBishopMoves(fromI, fromJ);
+    } else if (pieceType == R) {
+      legalMoves = getRookMoves(fromI, fromJ);
+    } else if (pieceType == Q) {
+      legalMoves = getQueenMoves(fromI, fromJ);
+    } else if (pieceType == K) {
+      legalMoves = getKingMoves(fromI, fromJ);
+    }
+
+    // returns false if the proposed move is not found in the list of legal moves, else returns true
+    int[] proposedMove = new int[] {i, j};
+//    if (legalMoves.indexOf(proposedMove) == -1) {
+//      return false;
+//    } else {
+//      return true;
+//    }
+    return true;
   }
 
   /**
@@ -708,7 +738,7 @@ public class Main extends Application {
    * @param j - value representing the column of the button pushed
    * @ @return - a list of int arrays, each representing a move
    */
-  private List<int[]> getKingMoves(int i, int j, boolean isBlack) {
+  private List<int[]> getKingMoves(int i, int j) {
     return null;
   }
 
@@ -804,7 +834,7 @@ public class Main extends Application {
     if (piece == P && (toI == 7 || toI == 0)) {
       // auto-promotes a pawn to a queen if pawn moved to last row (the only way a pawn gets to last
       // row of board is on the opposite side, hence warranting a promotion)
-      tiles[toI][toJ].setPiece(Q, pieceColor);
+      tiles[toI][toJ].setPiece(pieceColor, Q);
     } else {
       tiles[toI][toJ].setPiece(pieceColor, piece);
     }
