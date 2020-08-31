@@ -1030,13 +1030,13 @@ public class Main extends Application {
       }
     }
     
-    if (i - 1 > 0 && j + 1 > 0) {
+    if (i - 1 > 0 && j + 1 < 8) {
       if (tiles[i - 1][j + 1].getPieceColor() != pieceColor && !isInCheck(i - 1, j + 1, pieceColor)) {
         moves.add(new int[] {i - 1, j + 1});
       }
     }
     
-    if (j + 1 > 0) {
+    if (j + 1 < 8) {
       if (tiles[i][j + 1].getPieceColor() != pieceColor && !isInCheck(i, j + 1, pieceColor)) {
         moves.add(new int[] {i, j + 1});
       }
@@ -1048,19 +1048,19 @@ public class Main extends Application {
       }
     }
     
-    if (i + 1 > 0) {
+    if (i + 1 < 8) {
       if (tiles[i + 1][j].getPieceColor() != pieceColor && !isInCheck(i + 1, j, pieceColor)) {
         moves.add(new int[] {i + 1, j});
       }
     }
     
-    if (i + 1 > 0 && j - 1 > 0) {
+    if (i + 1 < 8 && j - 1 > 0) {
       if (tiles[i + 1][j - 1].getPieceColor() != pieceColor && !isInCheck(i + 1, j - 1, pieceColor)) {
         moves.add(new int[] {i + 1, j - 1});
       }
     }
     
-    if (i + 1 > 0 && j + 1 > 0) {
+    if (i + 1 < 8 && j + 1 < 8) {
       if (tiles[i + 1][j + 1].getPieceColor() != pieceColor && !isInCheck(i + 1, j + 1, pieceColor)) {
         moves.add(new int[] {i + 1, j + 1});
       }
@@ -1086,12 +1086,115 @@ public class Main extends Application {
     return moves;
   }
   
+  /**
+   * Checks to see if a piece at tiles[i][j] is in "check" (whether it is a king or not)
+   * 
+   * @param i - tiles[i][] - the 'i' value of the tile the piece is on
+   * @param j - tiles [][j] - the 'j' value of the tile the piece is on
+   * @param pieceColor - the color of the piece (1 is white, 2 is black)
+   * @return true if the piece is in check, else false
+   */
   private boolean isInCheck(int i, int j, int pieceColor) {
-    // TODO
+    // creates a list to store all moves in
+    List<int[]> moves;
+
+    if (pieceColor == 1) { // if the piece is white
+      moves = getAllMoves(2); // gets all black moves
+      // checks each move to see if it could take the piece (if the piece's location is a possible
+      // move)
+      for (int[] move : moves) {
+        if (Arrays.equals(move, new int[] {i, j})) {
+          return true;
+        }
+      }
+    } else { // else the piece is black
+      moves = getAllMoves(1); // gets all white moves
+      // checks each move to see if it could take the piece (if the piece's location is a possible
+      // move)
+      for (int[] move : moves) {
+        if (Arrays.equals(move, new int[] {i, j})) {
+          return true;
+        }
+      }
+    }
+    
+    // return false if no move made by the other player could take the piece at [i][j]
+    return false;
   }
   
+  /**
+   * Gets all the possible moves for a player 
+   * 
+   * @param color - the color of the player's pieces whose moves are being gotten
+   * @return a list of all possible moves for the given color
+   */
+  private List<int[]> getAllMoves(int color) {
+    // creates a list to store all the legal moves a color has
+    List<int[]> moves = new ArrayList<int[]>();
+
+    // goes through each tile, checking to see if the piece color on the tile matches the given
+    // color, if it does, it checks for moves that can be made by the piece on the tile and adds
+    // them to the list
+    for (int i = 0; i < 8; i++) {
+      for (int j = 0; j < 8; j++) {
+        if (tiles[i][j].getPieceColor() == color) {
+          if (tiles[i][j].getPiece() == P) {
+            moves.addAll(getPawnMoves(i, j, color));
+          } else if (tiles[i][j].getPiece() == N) {
+            moves.addAll(getKnightMoves(i, j, color));
+          } else if (tiles[i][j].getPiece() == B) {
+            moves.addAll(getBishopMoves(i, j, color));
+          } else if (tiles[i][j].getPiece() == R) {
+            moves.addAll(getRookMoves(i, j, color));
+          } else if (tiles[i][j].getPiece() == Q) {
+            moves.addAll(getQueenMoves(i, j, color));
+          } else if (tiles[i][j].getPiece() == K) {
+            moves.addAll(getKingMoves(i, j, color));
+          }
+        }
+      }
+    }
+    
+    return moves;
+  }
+  
+  /**
+   * Checks to see if a castle is possible given the color and j value of the rook being used
+   * 
+   * @param j - the file the rook is on
+   * @param pieceColor - the color of the king being castled
+   * @return true if a castle is possible, else false
+   */
   private boolean canCastle(int j, int pieceColor) {
-    // TODO
+    // if the king is white, use the 'w' boolean values
+    if (pieceColor == 1) {
+      // if the rook's j value is seven, use the 'Seven' boolean value
+      if (j == 7) {
+        if (!wKingMoved && !wSevenRookMoved) { 
+          return true;
+        }
+      // else if the rook's j value is zero, use the 'Zero' boolean value
+      } else if (j == 0) {
+        if (!wKingMoved && !wZeroRookMoved) {
+          return true;
+        }
+      }
+    } else { // else use the 'b' values
+      // if the rook's j value is seven, use the 'Seven' boolean value
+      if (j == 7) {
+        if (!bKingMoved && !bSevenRookMoved) {
+          return true;
+        } 
+      // else if the rook's j value is zero, use the 'Zero' boolean value
+      } else if (j == 0) {
+        if (!bKingMoved && !bZeroRookMoved) {
+          return true;
+        }
+      }
+    }
+    
+    // returns false if the castle move cannot be completed
+    return false;
   }
 
   /**
