@@ -85,6 +85,11 @@ public class Main extends Application {
   private boolean bKingMoved = false;
   private boolean castling = false;
   
+  // creates an int[] to store the last move
+  private int[] last = new int[5];
+  
+  // creates a boolean value to alert the move method of an en passant move
+  private boolean passanting = false;
 
   // general properties to be used in making the gui
   public static final int WINDOW_HEIGHT = 720;
@@ -716,8 +721,7 @@ public class Main extends Application {
             check.setText("");
           }
         }
-      } // TODO: else if (isEnPassant()) and corresponding methods with seperate move
-        // instructions
+      }
       else {
         pressed = NONE;
         tryAgain.setText(
@@ -747,19 +751,28 @@ public class Main extends Application {
     // gets the list of all legal moves dependant on piece type via helper methods
     if (pieceType == P) {
       legalMoves = getPawnMoves(fromI, fromJ, pieceColor, tiles);
+      if (canEnPassant(j, pieceColor) && fromJ != j && tiles[i][j].getPieceColor() == 0) {
+        passanting = true;
+      } else {
+        passanting = false;
+      }
       castling = false;
     } else if (pieceType == N) {
       legalMoves = getKnightMoves(fromI, fromJ, pieceColor, tiles);
       castling = false;
+      passanting = false;
     } else if (pieceType == B) {
       legalMoves = getBishopMoves(fromI, fromJ, pieceColor, tiles);
       castling = false;
+      passanting = false;
     } else if (pieceType == R) {
       legalMoves = getRookMoves(fromI, fromJ, pieceColor, tiles);
       castling = false;
+      passanting = false;
     } else if (pieceType == Q) {
       legalMoves = getQueenMoves(fromI, fromJ, pieceColor, tiles);
       castling = false;
+      passanting = false;
     } else if (pieceType == K) {
       legalMoves = getKingMoves(fromI, fromJ, pieceColor, tiles);
       // sets castling to either true or false to help with move method
@@ -783,6 +796,7 @@ public class Main extends Application {
           return false;
         }
       }
+      passanting = false;
     }
     
     // returns false if the list of legal moves is null
@@ -839,6 +853,16 @@ public class Main extends Application {
       if ((j + 1 < 8) && tiles[i - 1][j + 1].getPieceColor() == 2) {
         moves.add(new int[] {i - 1, j + 1});
       }
+      if (i == 3) {
+        if (j + 1 < 8 && canEnPassant(j + 1, 1)) {
+          moves.add(new int[] {i - 1, j + 1});
+          passanting = true;
+        } 
+        if (j - 1 >= 0 && canEnPassant(j - 1, 1)) {
+          moves.add(new int[] {i - 1, j - 1});
+          passanting = true;
+        }
+      }
     } else {
       // if the tile in front of the pawn is empty, add that tile to the list
       if (tiles[i + 1][j].getPieceColor() == 0) {
@@ -857,8 +881,48 @@ public class Main extends Application {
       if ((j + 1 < 8) && tiles[i + 1][j + 1].getPieceColor() == 1) {
         moves.add(new int[] {i + 1, j + 1});
       }
+      if (i == 4) {
+        if (j + 1 < 8 && canEnPassant(j + 1, 2)) {
+          moves.add(new int[] {i + 1, j + 1});
+        } 
+        if (j - 1 >= 0 && canEnPassant(j - 1, 2)) {
+          moves.add(new int[] {i + 1, j - 1});
+        }
+      }
     }
     return moves;
+  }
+  
+  /**
+   * Checks to see if an en passant move is available for a pawn
+   * 
+   * Note: it is assumed that the pawn is in the correct i (3 for w, 4 for b)
+   * 
+   * @param j - the column being checked for an en passant move
+   * @param color - the color of the pawn checking for the move
+   * @return true if the pawn can en passant to that j, else false
+   */
+  private boolean canEnPassant(int j, int color) {
+    if (last[4] != P) {
+      return false;
+    }
+    if (color == 1) {
+      if (last[1] != j || last[3] != j) {
+        return false;
+      } else if (last[0] != 1 || last[2] != 3) {
+        return false;
+      } else {
+        return true;
+      }
+    } else {
+      if (last[1] != j || last[3] != j) {
+        return false;
+      } else if (last[0] != 6 || last[2] != 4) {
+        return false;
+      } else {
+        return true;
+      }
+    }
   }
 
   /**
@@ -1549,12 +1613,16 @@ public class Main extends Application {
     Image DBK = new Image(image210);
     FileInputStream image310 = new FileInputStream("./images/LBK.png");
     Image LBK = new Image(image310);
-
+    
+    
     // saves the piece/piece color of the "to"/"from" tiles, and adjusts the values in that tile to
     // be a blank dark/light tile
     int piece = tiles[fromI][fromJ].getPiece();
     int pieceColor = tiles[fromI][fromJ].getPieceColor();
     tiles[fromI][fromJ].setPiece(0, 0);
+    
+    // saves the move as the new "last" move
+    last = new int[] {fromI, fromJ, toI, toJ, piece};
     
     if (castling && piece == K) {
       if (toJ == 2) {
@@ -1852,6 +1920,41 @@ public class Main extends Application {
         }
       }
     }
+ 
+    // updates the tile of the taken pawn in case of an en passant move
+    Button passanted = new Button();
+    
+    if (passanting && piece == P) {
+      if (pieceColor == 1) {
+        passanted = getButton(toI + 1, toJ);
+        tiles[toI + 1][toJ].setPiece(0, 0);
+        if (toI + 1 % 2 == toJ % 2) { // these tiles are all dark
+          ImageView img = new ImageView(DarkTile);
+          img.setFitHeight(80);
+          img.setFitWidth(80);
+          passanted.setGraphic(img);
+        } else {
+          ImageView img = new ImageView(LightTile);
+          img.setFitHeight(80);
+          img.setFitWidth(80);
+          passanted.setGraphic(img);
+        }
+      } else {
+        passanted = getButton(toI - 1, toJ);
+        tiles[toI - 1][toJ].setPiece(0, 0);
+        if (toI - 1 % 2 == toJ % 2) { // these tiles are all dark
+          ImageView img = new ImageView(DarkTile);
+          img.setFitHeight(80);
+          img.setFitWidth(80);
+          passanted.setGraphic(img);
+        } else {
+          ImageView img = new ImageView(LightTile);
+          img.setFitHeight(80);
+          img.setFitWidth(80);
+          passanted.setGraphic(img);
+        }
+      }
+    }
   }
   
   /**
@@ -1875,4 +1978,7 @@ public class Main extends Application {
     // else return null
     return null;
   }
+  
+
 }
+
