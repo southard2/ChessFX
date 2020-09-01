@@ -1979,6 +1979,68 @@ public class Main extends Application {
     return null;
   }
   
+  /**
+   * Gets the "best" move for the given color on the given board state
+   * 
+   * @param color - the color who is next to move
+   * @param tiles - the state of the board
+   * @return - an int array s.t. (0 = fromI, 1 = fromJ, 2 = toI, 3 = toJ)
+   */
+  private int[] getMove(int color, Tile[][] tiles) {
+    
+    List<Integer> values = new ArrayList<Integer>();
+    
+    List<int[]> moves = new ArrayList<int[]>();
+    List<int[]> moves2 = new ArrayList<int[]>();
+    List<int[]> moves3 = new ArrayList<int[]>();
+    int possible;
+    int possible2;
+    int possible3;
+    
+    
+    moves = getAllMovesDetailed(color, tiles);
+    possible = moves.size();
+    for (int[] move : moves) {
+      Tile[][] tiles2 = fakeMove(move, tiles);
+      moves2 = getAllMovesDetailed(color, tiles2);
+      possible2 = moves2.size();
+      for (int[] move2 : moves2) {
+        Tile[][] tiles3 = fakeMove(move2, tiles2);
+        moves3 = getAllMovesDetailed(color, tiles3);
+        possible3 = moves3.size();
+        for (int[] move3 : moves3) {
+          Tile[][] tiles4 = fakeMove(move3, tiles3);
+          values.add(getBoardValue(tiles4));
+        }
+      }
+     }
+    
+    
+    return null;
+  }
 
+  /**
+   * Simulates a move on the board by returning a copy of what the tiles array would look like after
+   * the given move
+   * 
+   * @param move - the given move to be simulated
+   * @param tiles - the tiles array before the move
+   * @return Tile[][] representation of the board after the given move
+   */
+  private Tile[][] fakeMove(int[] move, Tile[][] tiles) {
+    return null;
+  }
+  
+  /**
+   * Calculates the value of a given board state based on how many pieces each color has, or whether
+   * a checkmate/stalemate has occured
+   * 
+   * @param tiles - the current board state
+   * @return the int value of pieces on the board (white - black)
+   */
+  private int getBoardValue(Tile[][] tiles) {
+    return 0;
+  }
+  
 }
 
