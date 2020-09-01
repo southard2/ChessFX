@@ -116,7 +116,7 @@ public class Main extends Application {
     
     Button reset = new Button();
     reset.setGraphic(new Label("RESET"));
-    reset.setOnAction(e -> reset(reset));
+    reset.setOnAction(e -> reset(reset, arg0));
     
     // sets up a VBox containing alerts for checks/mates, who is to play, and error messages
     VBox text = new VBox(toPlay, tryAgain, check, reset);
@@ -144,8 +144,12 @@ public class Main extends Application {
   /**
    * Resets the game
    */
-  private void reset(Button reset) {
+  private void reset(Button reset, Stage arg0) {
     // sets up the playable display as if at the start
+    board = new GridPane();
+    board.setMaxSize(8, 8);
+    board.setMaxHeight(600);
+    board.setMaxWidth(600);
     try {
       setupBoard();
     } catch (FileNotFoundException e) {
@@ -153,11 +157,23 @@ public class Main extends Application {
     }
     setupTiles();
     
+    // sets up a VBox containing alerts for checks/mates, who is to play, and error messages
+    VBox text = new VBox(toPlay, tryAgain, check, reset);
+    text.setSpacing(10);
+    tryAgain.setTextFill(Color.web("#ff0000")); // sets the color of the 
+    
+    // sets up a HBox with the board and text alerts, and makes a scene with that HBox
+    HBox gui = new HBox(board, text);
+    Scene mainScene = new Scene(gui, WINDOW_WIDTH, WINDOW_HEIGHT);
+
+    arg0.setTitle(APP_TITLE);
+    arg0.setScene(mainScene);
+    arg0.show();
+    
     // resets all values/textboxes/buttons
     toPlay.setText("White to play.");
     tryAgain.setText("");
     check.setText("");
-    reset.setVisible(false);
     
     wKingI = 7;
     wKingJ = 4;
@@ -677,7 +693,7 @@ public class Main extends Application {
           tryAgain.setText("");
           if (isInCheck(bKingI, bKingJ, 2, tiles)) {
             if (isCheckMate(2, tiles)) {
-              check.setText("Checkmate! Black wins!");
+              check.setText("Checkmate! White wins!");
               toPlay.setText("");
             } else {
               check.setText("CHECK!");
@@ -691,7 +707,7 @@ public class Main extends Application {
           tryAgain.setText("");
           if (isInCheck(wKingI, wKingJ, 1, tiles)) {
             if (isCheckMate(1, tiles)) {
-              check.setText("Checkmate! White wins!");
+              check.setText("Checkmate! Black wins!");
               toPlay.setText("");
             } else {
               check.setText("CHECK!");
@@ -1107,19 +1123,19 @@ public class Main extends Application {
     
     // the king can move one space in any direction (including diagonals)
     // checks each possible move, adds all eligible moves to the list
-    if (i - 1 > 0) {
+    if (i - 1 >= 0) {
       if (tiles[i - 1][j].getPieceColor() != pieceColor) {
         moves.add(new int[] {i - 1, j});
       }
     }
     
-    if (i - 1 > 0 && j - 1 > 0) {
+    if (i - 1 >= 0 && j - 1 >= 0) {
       if (tiles[i - 1][j - 1].getPieceColor() != pieceColor) {
         moves.add(new int[] {i - 1, j - 1});
       }
     }
     
-    if (i - 1 > 0 && j + 1 < 8) {
+    if (i - 1 >= 0 && j + 1 < 8) {
       if (tiles[i - 1][j + 1].getPieceColor() != pieceColor) {
         moves.add(new int[] {i - 1, j + 1});
       }
@@ -1131,7 +1147,7 @@ public class Main extends Application {
       }
     }
     
-    if (j - 1 > 0) {
+    if (j - 1 >= 0) {
       if (tiles[i][j - 1].getPieceColor() != pieceColor) {
         moves.add(new int[] {i, j - 1});
       }
@@ -1143,7 +1159,7 @@ public class Main extends Application {
       }
     }
     
-    if (i + 1 < 8 && j - 1 > 0) {
+    if (i + 1 < 8 && j - 1 >= 0) {
       if (tiles[i + 1][j - 1].getPieceColor() != pieceColor) {
         moves.add(new int[] {i + 1, j - 1});
       }
