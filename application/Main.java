@@ -94,6 +94,7 @@ public class Main extends Application {
   // labels to allow for dynamic words in the gui
   Label toPlay = new Label("White to play.");
   Label tryAgain = new Label("");
+  Label check = new Label("");
   
   // used to more easily interpret the int that correspond to each piece
   public final int P = 0;
@@ -113,9 +114,13 @@ public class Main extends Application {
     board.setMaxHeight(600);
     board.setMaxWidth(600);
     
+    Button reset = new Button();
+    reset.setGraphic(new Label("RESET"));
+    reset.setOnAction(e -> reset(reset));
+    
     // sets up a VBox containing alerts for checks/mates, who is to play, and error messages
-    VBox text = new VBox(toPlay, tryAgain);
-    text.setSpacing(3);
+    VBox text = new VBox(toPlay, tryAgain, check, reset);
+    text.setSpacing(10);
     tryAgain.setTextFill(Color.web("#ff0000")); // sets the color of the 
     
     // sets up a HBox with the board and text alerts, and makes a scene with that HBox
@@ -134,6 +139,40 @@ public class Main extends Application {
     arg0.setScene(mainScene);
     arg0.show();
 
+  }
+  
+  /**
+   * Resets the game
+   */
+  private void reset(Button reset) {
+    // sets up the playable display as if at the start
+    try {
+      setupBoard();
+    } catch (FileNotFoundException e) {
+      e.printStackTrace();
+    }
+    setupTiles();
+    
+    // resets all values/textboxes/buttons
+    toPlay.setText("White to play.");
+    tryAgain.setText("");
+    check.setText("");
+    reset.setVisible(false);
+    
+    wKingI = 7;
+    wKingJ = 4;
+    bKingI = 0;
+    bKingJ = 4;
+    
+    wZeroRookMoved = false;
+    wSevenRookMoved = false;
+    bZeroRookMoved = false;
+    bSevenRookMoved = false;
+    wKingMoved = false;
+    bKingMoved = false;
+    castling = false;
+    
+    whiteToPlay = true;
   }
 
   /**
@@ -636,10 +675,30 @@ public class Main extends Application {
           whiteToPlay = false;
           toPlay.setText("Black to play");
           tryAgain.setText("");
+          if (isInCheck(bKingI, bKingJ, 2, tiles)) {
+            if (isCheckMate(2, tiles)) {
+              check.setText("Checkmate! Black wins!");
+              toPlay.setText("");
+            } else {
+              check.setText("CHECK!");
+            }
+          } else {
+            check.setText("");
+          }
         } else {
           whiteToPlay = true;
           toPlay.setText("White to play.");
           tryAgain.setText("");
+          if (isInCheck(wKingI, wKingJ, 1, tiles)) {
+            if (isCheckMate(1, tiles)) {
+              check.setText("Checkmate! White wins!");
+              toPlay.setText("");
+            } else {
+              check.setText("CHECK!");
+            }
+          } else {
+            check.setText("");
+          }
         }
       } // TODO: else if (isEnPassant()) and corresponding methods with seperate move
         // instructions
@@ -671,25 +730,45 @@ public class Main extends Application {
     
     // gets the list of all legal moves dependant on piece type via helper methods
     if (pieceType == P) {
-      legalMoves = getPawnMoves(fromI, fromJ, pieceColor);
+      legalMoves = getPawnMoves(fromI, fromJ, pieceColor, tiles);
+      castling = false;
     } else if (pieceType == N) {
-      legalMoves = getKnightMoves(fromI, fromJ, pieceColor);
+      legalMoves = getKnightMoves(fromI, fromJ, pieceColor, tiles);
+      castling = false;
     } else if (pieceType == B) {
-      legalMoves = getBishopMoves(fromI, fromJ, pieceColor);
+      legalMoves = getBishopMoves(fromI, fromJ, pieceColor, tiles);
+      castling = false;
     } else if (pieceType == R) {
-      legalMoves = getRookMoves(fromI, fromJ, pieceColor);
+      legalMoves = getRookMoves(fromI, fromJ, pieceColor, tiles);
+      castling = false;
     } else if (pieceType == Q) {
-      legalMoves = getQueenMoves(fromI, fromJ, pieceColor);
+      legalMoves = getQueenMoves(fromI, fromJ, pieceColor, tiles);
+      castling = false;
     } else if (pieceType == K) {
-      legalMoves = getKingMoves(fromI, fromJ, pieceColor);
+      legalMoves = getKingMoves(fromI, fromJ, pieceColor, tiles);
       // sets castling to either true or false to help with move method
       if (fromJ == 4 && (j == 2 || j == 6)) {
         castling = true;
+        if (j == 2) {
+          // checks that a potential castle would not be through/away from check (which is illegal)
+          if (isInCheck(i, j, pieceColor, tiles) || isInCheck(i, 3, pieceColor, tiles)
+              || isInCheck(i, 4, pieceColor, tiles)) {
+            return false;
+          }
+        } else if (j == 6) {
+          if (isInCheck(i, j, pieceColor, tiles) || isInCheck(i, 5, pieceColor, tiles)
+              || isInCheck(i, 4, pieceColor, tiles)) {
+            return false;
+          }
+        }
       } else {
         castling = false;
+        if (isInCheck(i, j, pieceColor, tiles)) {
+          return false;
+        }
       }
     }
-
+    
     // returns false if the list of legal moves is null
     if (legalMoves == null) {
       return false;
@@ -697,6 +776,16 @@ public class Main extends Application {
              // found
       for (int[] move : legalMoves) {
         if (Arrays.equals(move, new int[] {i, j})) {
+          // if the king is in check after the given move, return false
+          if (pieceColor == 1) {
+            if (!castling && wouldBeCheck(piece, move)) {
+              return false;
+            }
+          } else if (pieceColor == 2) {
+            if (!castling && wouldBeCheck(piece, move)) {
+              return false;
+            }
+          }
           return true;
         }
       }
@@ -711,7 +800,7 @@ public class Main extends Application {
    * @param j - value representing the column of the button pushed
    * @return - a list of int arrays, each representing a move
    */
-  private List<int[]> getPawnMoves(int i, int j, int pieceColor) {
+  private List<int[]> getPawnMoves(int i, int j, int pieceColor, Tile[][] tiles) {
     // creates a list to store all moves the pawn can make
     List<int[]> moves = new ArrayList<int[]>();
     
@@ -763,7 +852,7 @@ public class Main extends Application {
    * @param j - value representing the column of the button pushed
    * @return - a list of int arrays, each representing a move
    */
-  private List<int[]> getKnightMoves(int i, int j, int pieceColor) {
+  private List<int[]> getKnightMoves(int i, int j, int pieceColor, Tile[][] tiles) {
     // creates a list to store all moves the knight can make
     List<int[]> moves = new ArrayList<int[]>();
     
@@ -861,7 +950,7 @@ public class Main extends Application {
    * @param j - value representing the column of the button pushed
    * @return - a list of int arrays, each representing a move
    */
-  private List<int[]> getBishopMoves(int i, int j, int pieceColor) {
+  private List<int[]> getBishopMoves(int i, int j, int pieceColor, Tile[][] tiles) {
     // creates a list used to store moves found for the bishop
     List<int[]> moves = new ArrayList<int[]>();
     
@@ -927,7 +1016,7 @@ public class Main extends Application {
    * @param j - value representing the column of the button pushed
    * @return - a list of int arrays, each representing a move
    */
-  private List<int[]> getRookMoves(int i, int j, int pieceColor) {
+  private List<int[]> getRookMoves(int i, int j, int pieceColor, Tile[][] tiles) {
     // creates a list used to store moves found for the rook
     List<int[]> moves = new ArrayList<int[]>();
     
@@ -993,14 +1082,14 @@ public class Main extends Application {
    * @param j - value representing the column of the button pushed
    * @return - a list of int arrays, each representing a move
    */
-  private List<int[]> getQueenMoves(int i, int j, int pieceColor) {
+  private List<int[]> getQueenMoves(int i, int j, int pieceColor, Tile[][] tiles) {
     // creates a list to store all moves the queen can make
     List<int[]> moves = new ArrayList<int[]>();
 
     // adds all moves that can be done by a bishop, rook as queen can move both straight and
     // diagonally
-    moves.addAll(getBishopMoves(i, j, pieceColor));
-    moves.addAll(getRookMoves(i, j, pieceColor));
+    moves.addAll(getBishopMoves(i, j, pieceColor, tiles));
+    moves.addAll(getRookMoves(i, j, pieceColor, tiles));
     
     return moves;
   }
@@ -1012,56 +1101,56 @@ public class Main extends Application {
    * @param j - value representing the column of the button pushed
    * @ @return - a list of int arrays, each representing a move
    */
-  private List<int[]> getKingMoves(int i, int j, int pieceColor) {
+  private List<int[]> getKingMoves(int i, int j, int pieceColor, Tile[][] tiles) {
     // creates a list to store all moves the queen can make
     List<int[]> moves = new ArrayList<int[]>();
     
     // the king can move one space in any direction (including diagonals)
     // checks each possible move, adds all eligible moves to the list
     if (i - 1 > 0) {
-      if (tiles[i - 1][j].getPieceColor() != pieceColor && !isInCheck(i - 1, j, pieceColor)) {
+      if (tiles[i - 1][j].getPieceColor() != pieceColor) {
         moves.add(new int[] {i - 1, j});
       }
     }
     
     if (i - 1 > 0 && j - 1 > 0) {
-      if (tiles[i - 1][j - 1].getPieceColor() != pieceColor && !isInCheck(i - 1, j - 1, pieceColor)) {
+      if (tiles[i - 1][j - 1].getPieceColor() != pieceColor) {
         moves.add(new int[] {i - 1, j - 1});
       }
     }
     
     if (i - 1 > 0 && j + 1 < 8) {
-      if (tiles[i - 1][j + 1].getPieceColor() != pieceColor && !isInCheck(i - 1, j + 1, pieceColor)) {
+      if (tiles[i - 1][j + 1].getPieceColor() != pieceColor) {
         moves.add(new int[] {i - 1, j + 1});
       }
     }
     
     if (j + 1 < 8) {
-      if (tiles[i][j + 1].getPieceColor() != pieceColor && !isInCheck(i, j + 1, pieceColor)) {
+      if (tiles[i][j + 1].getPieceColor() != pieceColor) {
         moves.add(new int[] {i, j + 1});
       }
     }
     
     if (j - 1 > 0) {
-      if (tiles[i][j - 1].getPieceColor() != pieceColor && !isInCheck(i, j - 1, pieceColor)) {
+      if (tiles[i][j - 1].getPieceColor() != pieceColor) {
         moves.add(new int[] {i, j - 1});
       }
     }
     
     if (i + 1 < 8) {
-      if (tiles[i + 1][j].getPieceColor() != pieceColor && !isInCheck(i + 1, j, pieceColor)) {
+      if (tiles[i + 1][j].getPieceColor() != pieceColor) {
         moves.add(new int[] {i + 1, j});
       }
     }
     
     if (i + 1 < 8 && j - 1 > 0) {
-      if (tiles[i + 1][j - 1].getPieceColor() != pieceColor && !isInCheck(i + 1, j - 1, pieceColor)) {
+      if (tiles[i + 1][j - 1].getPieceColor() != pieceColor) {
         moves.add(new int[] {i + 1, j - 1});
       }
     }
     
     if (i + 1 < 8 && j + 1 < 8) {
-      if (tiles[i + 1][j + 1].getPieceColor() != pieceColor && !isInCheck(i + 1, j + 1, pieceColor)) {
+      if (tiles[i + 1][j + 1].getPieceColor() != pieceColor) {
         moves.add(new int[] {i + 1, j + 1});
       }
     }
@@ -1069,17 +1158,12 @@ public class Main extends Application {
     if (canCastle(0, pieceColor)) {
       if (tiles[i][3].getPieceColor() == 0 && tiles[i][2].getPieceColor() == 0
           && tiles[i][1].getPieceColor() == 0) {
-        if (!isInCheck(i, j, pieceColor) && !isInCheck(i, 3, pieceColor)
-            && !isInCheck(i, 2, pieceColor)) {
-          moves.add(new int[] {i, 2});
-        }
+        moves.add(new int[] {i, 2});
       }
-    } else if (canCastle(7, pieceColor)) {
+    } 
+    if (canCastle(7, pieceColor)) {
       if (tiles[i][5].getPieceColor() == 0 && tiles[i][6].getPieceColor() == 0) {
-        if (!isInCheck(i, j, pieceColor) && !isInCheck(i, 5, pieceColor)
-            && !isInCheck(i, 6, pieceColor)) {
-          moves.add(new int[] {i, 6});
-        }
+        moves.add(new int[] {i, 6});
       }
     }
     
@@ -1094,12 +1178,12 @@ public class Main extends Application {
    * @param pieceColor - the color of the piece (1 is white, 2 is black)
    * @return true if the piece is in check, else false
    */
-  private boolean isInCheck(int i, int j, int pieceColor) {
+  private boolean isInCheck(int i, int j, int pieceColor, Tile[][] tiles) {
     // creates a list to store all moves in
     List<int[]> moves;
 
     if (pieceColor == 1) { // if the piece is white
-      moves = getAllMoves(2); // gets all black moves
+      moves = getAllMoves(2, tiles); // gets all black moves
       // checks each move to see if it could take the piece (if the piece's location is a possible
       // move)
       for (int[] move : moves) {
@@ -1108,7 +1192,7 @@ public class Main extends Application {
         }
       }
     } else { // else the piece is black
-      moves = getAllMoves(1); // gets all white moves
+      moves = getAllMoves(1, tiles); // gets all white moves
       // checks each move to see if it could take the piece (if the piece's location is a possible
       // move)
       for (int[] move : moves) {
@@ -1123,12 +1207,144 @@ public class Main extends Application {
   }
   
   /**
+   * Checks if the color's king would be in check after a given move
+   * 
+   * @param moved - the piece being moved (0 = i, 1 = j, 2 = color, 3 = piece type)
+   * @param move - the tile the piece is being moved to (0 = i, 1 = j)
+   * @return - true if the king would be in check after the move, else false
+   */
+  private boolean wouldBeCheck(int[] moved, int[] move) {
+    // gets a copy of the tiles array so that this method does not affect the playable board
+    Tile[][] fakeTiles = copyTiles();
+    
+    int fromI = moved[0];
+    int fromJ = moved[1];
+    int color = moved[2];
+    int piece = moved[3];
+    
+    int toI = move[0];
+    int toJ = move[1];
+    
+    // sets up new tiles in the array so that this method does not adjust the tiles in the other array
+    fakeTiles[fromI][fromJ] = new Tile(fakeTiles[fromI][fromJ].getColor(), color, piece);
+    fakeTiles[toI][toJ] = new Tile(fakeTiles[toI][toJ].getColor(), color, piece);
+    
+    
+    fakeTiles[fromI][fromJ].setPiece(0, 0);
+    fakeTiles[toI][toJ].setPiece(color, piece);
+    
+    int kingI = 0;
+    int kingJ = 0;
+    
+    if (color == 1 && piece == K) {
+      kingI = toI;
+      kingJ = toJ;
+    } else if (color == 2 && piece == K) {
+      kingI = toI;
+      kingJ = toJ;
+    } else {
+      if (color == 1) {
+        kingI = wKingI;
+        kingJ = wKingJ;
+      } else if (color == 2) {
+        kingI = bKingI;
+        kingJ = bKingJ; 
+      }
+    }
+    
+    if (isInCheck(kingI, kingJ, color, fakeTiles)) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  /**
+   * Checks to see if the color in question is in checkmate (which would end the game), assumes the
+   * king is already in check
+   * 
+   * @param color - the color of the king in check
+   * @param tiles - the tiles being checked for checkmate
+   * @return - true if a checkmate is found, else false
+   */
+  private boolean isCheckMate(int color, Tile[][] tiles) {
+    // gets a list of all possible moves (0 = fromI, 1 = fromJ, 2 = toI, 3 = toJ)
+    List<int[]> moves = getAllMovesDetailed(color, tiles);
+    
+    for (int[] move : moves) {
+      int piece = tiles[move[0]][move[1]].getPiece();
+      if (!wouldBeCheck(new int[] {move[0], move[1], color, piece}, new int[] {move[2], move[3]})) {
+        return false;
+      }
+    }
+    return true;
+  }
+  
+  /**
+   * Helper method yet to be implemented used in helping the computer detect which moves are good
+   * 
+   * @param color - the color being checked for check mate
+   * @param move - int representation of the move being made by the other color
+   * @return - true if the move would be checkmate, else false
+   */
+  private boolean wouldBeCheckMate(int[] moved, int[] move) {
+    // gets a copy of the tiles array so that this method does not affect the playable board
+    Tile[][] fakeTiles = copyTiles();
+    
+    int fromI = moved[0];
+    int fromJ = moved[1];
+    int color = moved[2];
+    int piece = moved[3];
+    
+    int toI = move[0];
+    int toJ = move[1];
+    
+    // sets up new tiles in the array so that this method does not adjust the tiles in the other array
+    fakeTiles[fromI][fromJ] = new Tile(fakeTiles[fromI][fromJ].getColor(), color, piece);
+    fakeTiles[toI][toJ] = new Tile(fakeTiles[toI][toJ].getColor(), color, piece);
+    
+    
+    fakeTiles[fromI][fromJ].setPiece(0, 0);
+    fakeTiles[toI][toJ].setPiece(color, piece);
+    
+    if (color == 1 ) { // if white moves, checks to see if black is check mated
+      if (isCheckMate(2, fakeTiles)) {
+        return true;
+      } else {
+        return false;
+      }
+    } else {// else black moves, checks to see if black is check mated
+      if (isCheckMate(1, fakeTiles)) {
+        return true;
+      } else {
+        return false;
+      }
+    }
+    
+  }
+  /**
+   * Gets a copy of the tiles array to be used in checking for checks
+   * 
+   * @return - a list of tiles that is a copy of the tiles list for the current board state
+   */
+  private Tile[][] copyTiles() {
+    Tile[][] fakeTiles = new Tile[8][8];
+    for (int i = 0; i < 8; i++) {
+      for (int j = 0; j < 8; j++) {
+        fakeTiles[i][j] = tiles[i][j];
+      }
+    }
+    
+    return fakeTiles;
+  }
+  
+  /**
    * Gets all the possible moves for a player 
    * 
    * @param color - the color of the player's pieces whose moves are being gotten
    * @return a list of all possible moves for the given color
    */
-  private List<int[]> getAllMoves(int color) {
+  private List<int[]> getAllMoves(int color, Tile[][] tiles) {
     // creates a list to store all the legal moves a color has
     List<int[]> moves = new ArrayList<int[]>();
 
@@ -1139,17 +1355,70 @@ public class Main extends Application {
       for (int j = 0; j < 8; j++) {
         if (tiles[i][j].getPieceColor() == color) {
           if (tiles[i][j].getPiece() == P) {
-            moves.addAll(getPawnMoves(i, j, color));
+            moves.addAll(getPawnMoves(i, j, color, tiles));
           } else if (tiles[i][j].getPiece() == N) {
-            moves.addAll(getKnightMoves(i, j, color));
+            moves.addAll(getKnightMoves(i, j, color, tiles));
           } else if (tiles[i][j].getPiece() == B) {
-            moves.addAll(getBishopMoves(i, j, color));
+            moves.addAll(getBishopMoves(i, j, color, tiles));
           } else if (tiles[i][j].getPiece() == R) {
-            moves.addAll(getRookMoves(i, j, color));
+            moves.addAll(getRookMoves(i, j, color, tiles));
           } else if (tiles[i][j].getPiece() == Q) {
-            moves.addAll(getQueenMoves(i, j, color));
+            moves.addAll(getQueenMoves(i, j, color, tiles));
           } else if (tiles[i][j].getPiece() == K) {
-            moves.addAll(getKingMoves(i, j, color));
+            moves.addAll(getKingMoves(i, j, color, tiles));
+          }
+        }
+      }
+    }
+    
+    return moves;
+  }
+  
+  /**
+   * Gets a list of possible moves for a color that includes the tile the piece is being moved from
+   * 
+   * NOTE: this was made when I realized the getAllMoves method did not work for the isCheckMate method,
+   * and may be redundant, but I did not want to adjust all of my other methods to work for this version
+   * of getAllMoves.
+   * 
+   * @param color - the color whose moves are being gotten
+   * @param tiles - the array of tiles
+   * @return - a list of all possible moves for the color
+   */
+  private List<int[]> getAllMovesDetailed(int color, Tile[][] tiles) {
+    // creates a list to store all the legal moves a color has
+    List<int[]> moves = new ArrayList<int[]>();
+
+    // goes through each tile, checking to see if the piece color on the tile matches the given
+    // color, if it does, it checks for moves that can be made by the piece on the tile and adds
+    // them to the list
+    for (int i = 0; i < 8; i++) {
+      for (int j = 0; j < 8; j++) {
+        if (tiles[i][j].getPieceColor() == color) {
+          if (tiles[i][j].getPiece() == P) {
+            for (int[] movedTo : getPawnMoves(i, j, color, tiles)) {
+              moves.add(new int[] {i , j, movedTo[0], movedTo[1]});
+            }
+          } else if (tiles[i][j].getPiece() == N) {
+            for (int[] movedTo : getKnightMoves(i, j, color, tiles)) {
+              moves.add(new int[] {i , j, movedTo[0], movedTo[1]});
+            }
+          } else if (tiles[i][j].getPiece() == B) {
+            for (int[] movedTo : getBishopMoves(i, j, color, tiles)) {
+              moves.add(new int[] {i , j, movedTo[0], movedTo[1]});
+            }
+          } else if (tiles[i][j].getPiece() == R) {
+            for (int[] movedTo : getRookMoves(i, j, color, tiles)) {
+              moves.add(new int[] {i , j, movedTo[0], movedTo[1]});
+            }
+          } else if (tiles[i][j].getPiece() == Q) {
+            for (int[] movedTo : getQueenMoves(i, j, color, tiles)) {
+              moves.add(new int[] {i , j, movedTo[0], movedTo[1]});
+            }
+          } else if (tiles[i][j].getPiece() == K) {
+            for (int[] movedTo : getKingMoves(i, j, color, tiles)) {
+              moves.add(new int[] {i , j, movedTo[0], movedTo[1]});
+            }
           }
         }
       }
@@ -1269,12 +1538,18 @@ public class Main extends Application {
     // be a blank dark/light tile
     int piece = tiles[fromI][fromJ].getPiece();
     int pieceColor = tiles[fromI][fromJ].getPieceColor();
+    tiles[fromI][fromJ].setPiece(0, 0);
     
     if (castling && piece == K) {
-      tiles[fromI][fromJ].setPiece(pieceColor, R);
-    } else {
-      tiles[fromI][fromJ].setPiece(0, 0);
-    }
+      if (toJ == 2) {
+        tiles[fromI][3].setPiece(pieceColor, R);
+        tiles[fromI][0].setPiece(0, 0);
+      } else if (toJ == 6) {
+        tiles[fromI][5].setPiece(pieceColor, R);
+        tiles[fromI][7].setPiece(0, 0);
+      }
+      
+    } 
     
     // updates a king value if needed
     if (piece == K) {
@@ -1310,50 +1585,76 @@ public class Main extends Application {
     Button fromBtn = getButton(fromI, fromJ);
 
     if (fromI % 2 != fromJ % 2) {
-      // if a castle is performed, set the from button to be a rook (as the rook and king swap
-      // positions
-      if (castling && piece == K) {
-        if (pieceColor == 1) {
-          ImageView img = new ImageView(DWR);
-          img.setFitHeight(80);
-          img.setFitWidth(80);
-          fromBtn.setGraphic(img);
-        } else {
-          ImageView img = new ImageView(DBR);
-          img.setFitHeight(80);
-          img.setFitWidth(80);
-          fromBtn.setGraphic(img);
-        }
-      } else { // else set it to a blank tile
-        ImageView img = new ImageView(DarkTile);
-        img.setFitHeight(80);
-        img.setFitWidth(80);
-        fromBtn.setGraphic(img);
-      }
+      ImageView img = new ImageView(DarkTile);
+      img.setFitHeight(80);
+      img.setFitWidth(80);
+      fromBtn.setGraphic(img);
     } else {
-      // if a castle is performed, set the from button to be a rook (as the rook and king swap
-      // positions
-      if (castling && piece == K) {
-        if (pieceColor == 1) {
-          ImageView img = new ImageView(LWR);
+      ImageView img = new ImageView(LightTile);
+      img.setFitHeight(80);
+      img.setFitWidth(80);
+      fromBtn.setGraphic(img);
+    }
+
+    // if a castle move is performed, set the spot the rook was at to a blank tile, and set the rook
+    // to be next to the king
+    if (castling && piece == K) {
+      if (pieceColor == 1) {
+        if (toJ == 2) {
+          Button corner = getButton(fromI, 0);
+          ImageView img = new ImageView(DarkTile);
           img.setFitHeight(80);
           img.setFitWidth(80);
-          fromBtn.setGraphic(img);
-        } else {
-          ImageView img = new ImageView(LBR);
+          corner.setGraphic(img);
+          
+          Button nextToKing = getButton(fromI, 3);
+          ImageView img2 = new ImageView(LWR);
+          img2.setFitHeight(80);
+          img2.setFitWidth(80);
+          nextToKing.setGraphic(img2);
+        } else if (toJ == 6) {
+          Button corner = getButton(fromI, 7);
+          ImageView img = new ImageView(LightTile);
           img.setFitHeight(80);
           img.setFitWidth(80);
-          fromBtn.setGraphic(img);
+          corner.setGraphic(img);
+
+          Button nextToKing = getButton(fromI, 5);
+          ImageView img2 = new ImageView(LWR);
+          img2.setFitHeight(80);
+          img2.setFitWidth(80);
+          nextToKing.setGraphic(img2);
         }
-      } else { // else set it to a blank tile
-        ImageView img = new ImageView(LightTile);
-        img.setFitHeight(80);
-        img.setFitWidth(80);
-        fromBtn.setGraphic(img);
+      } else if (pieceColor == 2) {
+        if (toJ == 2) {
+          Button corner = getButton(fromI, 0);
+          ImageView img = new ImageView(LightTile);
+          img.setFitHeight(80);
+          img.setFitWidth(80);
+          corner.setGraphic(img);
+
+          Button nextToKing = getButton(fromI, 3);
+          ImageView img2 = new ImageView(DBR);
+          img2.setFitHeight(80);
+          img2.setFitWidth(80);
+          nextToKing.setGraphic(img2);
+        } else if (toJ == 6) {
+          Button corner = getButton(fromI, 8);
+          ImageView img = new ImageView(DarkTile);
+          img.setFitHeight(80);
+          img.setFitWidth(80);
+          corner.setGraphic(img);
+
+          Button nextToKing = getButton(fromI, 5);
+          ImageView img2 = new ImageView(DBR);
+          img2.setFitHeight(80);
+          img2.setFitWidth(80);
+          nextToKing.setGraphic(img2);
+        }
       }
     }
 
-    
+
     // updates the piece values found in the "to" tile in the tiles array
     if (piece == P && (toI == 7 || toI == 0)) {
       // auto-promotes a pawn to a queen if pawn moved to last row (the only way a pawn gets to last
