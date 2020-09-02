@@ -135,7 +135,7 @@ public class Main extends Application {
     
     Button reset = new Button();
     reset.setGraphic(new Label("RESET"));
-    reset.setOnAction(e -> reset(reset, arg0));
+    reset.setOnAction(e -> reset(reset, cpu, arg0));
     
     // sets up a VBox containing alerts for checks/mates, who is to play, and error messages
     VBox text = new VBox(toPlay, tryAgain, check, cpu, reset);
@@ -163,7 +163,7 @@ public class Main extends Application {
   /**
    * Resets the game
    */
-  private void reset(Button reset, Stage arg0) {
+  private void reset(Button reset, HBox cpu, Stage arg0) {
     // sets up the playable display as if at the start
     board = new GridPane();
     board.setMaxSize(8, 8);
@@ -177,7 +177,7 @@ public class Main extends Application {
     setupTiles();
     
     // sets up a VBox containing alerts for checks/mates, who is to play, and error messages
-    VBox text = new VBox(toPlay, tryAgain, check, reset);
+    VBox text = new VBox(toPlay, tryAgain, check, cpu, reset);
     text.setSpacing(10);
     tryAgain.setTextFill(Color.web("#ff0000")); // sets the color of the 
     
@@ -752,9 +752,9 @@ public class Main extends Application {
   /**
    * Checks if the game is in a stalemate at a given board state
    * 
-   * @param color 
-   * @param tiles
-   * @return
+   * @param color - the color to move next
+   * @param tiles - the current board state
+   * @return - true if there is a stalemate, else false
    */
   private boolean isStaleMate(int color, Tile[][] tiles) {
     // if only kings remain on the board, it is a stale mate
@@ -2133,8 +2133,13 @@ public class Main extends Application {
       }
 
       int moveIndex = getMaxIndex(valuesFinal);
-
-      return moves.get(moveIndex);
+      
+      // in the case of a stalemate/checkmate, return an int[] of 4 -1's
+      if (moveIndex == -1) { 
+        return new int[] {-1, -1, -1, -1};
+      } else {
+        return moves.get(moveIndex);
+      }
     } else {
       List<Integer> values2 = new ArrayList<Integer>();
 
@@ -2153,8 +2158,13 @@ public class Main extends Application {
       }
 
       int moveIndex = getMinIndex(valuesFinal);
-
-      return moves.get(moveIndex);
+      
+      // in the case of a stalemate/checkmate, return an int[] of 4 -1's
+      if (moveIndex == -1) { 
+        return new int[] {-1, -1, -1, -1};
+      } else {
+        return moves.get(moveIndex);
+      }
     }
   }
   
@@ -2210,6 +2220,7 @@ public class Main extends Application {
     
     for (int i = 0; i < values.size(); i++) {
       if (values.get(i) > max) {
+        max = values.get(i);
         index = i;
       } else if (values.get(i) == max) {
         int rand = r.nextInt(2);
@@ -2234,6 +2245,7 @@ public class Main extends Application {
     
     for (int i = 0; i < values.size(); i++) {
       if (values.get(i) < min) {
+        min = values.get(i);
         index = i;
       } else if (values.get(i) == min) {
         int rand = r.nextInt(2);
@@ -2369,7 +2381,7 @@ public class Main extends Application {
     
     // move the stack elements to an int array to be returned
     int[] returned = new int[pieces.size()];
-    for (int i = 0; i < pieces.size(); i++) {
+    for (int i = 0; i < returned.length; i++) {
       returned[i] = pieces.pop();
     }
     
@@ -2398,7 +2410,7 @@ public class Main extends Application {
     
     // move the stack elements to an int array to be returned
     int[] returned = new int[pieces.size()];
-    for (int i = 0; i < pieces.size(); i++) {
+    for (int i = 0; i < returned.length; i++) {
       returned[i] = pieces.pop();
     }
     
@@ -2409,6 +2421,12 @@ public class Main extends Application {
    * Plays a move for white
    */
   private void whiteCPUMove() {
+    // don't move if it is black's turn
+    if (!whiteToPlay) {
+      tryAgain.setText("Black must move on black's turn!");
+      return;
+    }
+    
     // gets the "best" move
     int[] move = getMove(1, tiles);
     
@@ -2422,13 +2440,13 @@ public class Main extends Application {
           tryAgain.setText("");
           check.setText("Checkmate! White wins!");
           toPlay.setText("");
-        } else if (isStaleMate(2, tiles)) {
-          tryAgain.setText("");
-          check.setText("Stalemate! Everyone loses");
         } else {
           tryAgain.setText("");
           check.setText("CHECK!");
         }
+      } else if (isStaleMate(2, tiles)) {
+        tryAgain.setText("");
+        check.setText("Stalemate! Everyone loses");
       } else {
         check.setText("");
         tryAgain.setText("");
@@ -2442,6 +2460,12 @@ public class Main extends Application {
    * Plays a move for black
    */
   private void blackCPUMove() {
+    // don't move if it is white's turn
+    if (whiteToPlay) {
+      tryAgain.setText("White must move on white's turn!");
+      return;
+    }
+    
     int[] move = getMove(2, tiles);
     
     try {
@@ -2453,13 +2477,13 @@ public class Main extends Application {
           tryAgain.setText("");
           check.setText("Checkmate! Black wins!");
           toPlay.setText("");
-        } else if (isStaleMate(1, tiles)) {
-          tryAgain.setText("");
-          check.setText("Stalemate! Everyone loses");
         } else {
           tryAgain.setText("");
           check.setText("CHECK!");
         }
+      } else if (isStaleMate(1, tiles)) {
+        tryAgain.setText("");
+        check.setText("Stalemate! Everyone loses");
       } else {
         tryAgain.setText("");
         check.setText("");
