@@ -767,7 +767,7 @@ public class Main extends Application {
     }
     
     // if the given color has no legal moves, it is a stale mate
-    if (getAllLegalMoves(color, tiles).size() == 0) {
+    if (!isCheck(color, tiles) && getAllLegalMoves(color, tiles).size() == 0) {
       return true;
     } else { // else it is not
       return false;
@@ -1404,6 +1404,29 @@ public class Main extends Application {
   }
   
   /**
+   * Checks if a given king is in check
+   * 
+   * @param color - the color of the king
+   * @param tiles - the tiles array of the given board
+   * @return - true if the king is in check, else false
+   */
+  private boolean isCheck(int color, Tile[][] tiles) {
+    // find the correctly colored king in the tiles array, if it is in check, return true
+    for  (int i = 0; i < 8; i++) {
+      for (int j = 0; j < 8; j++) {
+        if (tiles[i][j].getPiece() == K && tiles[i][j].getColor() == color) {
+          if (isInCheck(i, j, color, tiles)) {
+            return true;
+          }
+        }
+      }
+    }
+    
+    // else return false
+    return false;
+  }
+  
+  /**
    * Gets a copy of the tiles array to be used in checking for checks
    * 
    * @return - a list of tiles that is a copy of the tiles list for the current board state
@@ -2016,22 +2039,21 @@ public class Main extends Application {
    * @return - an int array s.t. (0 = fromI, 1 = fromJ, 2 = toI, 3 = toJ)
    */
   private int[] getMove(int color, Tile[][] tiles) {
-
+    // creates a list to store the values of the given board state
     List<Integer> values = new ArrayList<Integer>();
 
+    // creates lists to hold the possible moves to be made on a given turn
     List<int[]> moves = new ArrayList<int[]>();
     List<int[]> moves2 = new ArrayList<int[]>();
     List<int[]> moves3 = new ArrayList<int[]>();
-    int possible;
-    int possible2;
-    int possible3;
+    
+    // creates Integer lists to hold the number of possible moves after a given set of moves
     ArrayList<Integer> possible2s = new ArrayList<Integer>();
     ArrayList<Integer> possible3s = new ArrayList<Integer>();
 
 
     // start by getting all possible moves for the given color
     moves = getAllLegalMoves(color, tiles);
-    possible = moves.size();
     for (int[] move : moves) {
       Tile[][] tiles2 = fakeMove(move, tiles);
       // else if white is to move, check black's next moves, then white's next moves again
@@ -2051,8 +2073,7 @@ public class Main extends Application {
           // else continue by getting the set of all possible 2nd moves for the given 1st
         } else {
           moves2 = getAllLegalMoves(2, tiles2);
-          possible2 = moves2.size();
-          possible2s.add(possible2);
+          possible2s.add(moves2.size());
           for (int[] move2 : moves2) {
             Tile[][] tiles3 = fakeMove(move2, tiles2);
             // if this move results in a checkmate, record a -99 in values, and set possible2s/3s(i)
@@ -2068,8 +2089,7 @@ public class Main extends Application {
               // else continue by getting the set of all possible 3rd moves for the given 1st/2nd
             } else {
               moves3 = getAllLegalMoves(1, tiles3);
-              possible3 = moves3.size();
-              possible3s.add(possible3);
+              possible3s.add(moves3.size());
               for (int[] move3 : moves3) {
                 Tile[][] tiles4 = fakeMove(move3, tiles3);
                 // if this move results in a checkmate, record a 99 in values
@@ -2105,8 +2125,7 @@ public class Main extends Application {
           // else continue by getting the set of all possible 2nd moves for the given 1st
         } else {
           moves2 = getAllLegalMoves(1, tiles2);
-          possible2 = moves2.size();
-          possible2s.add(possible2);
+          possible2s.add(moves2.size());
           for (int[] move2 : moves2) {
             Tile[][] tiles3 = fakeMove(move2, tiles2);
             // if this move results in a checkmate, record a 99 in values, and set possible2s/3s(i)
@@ -2122,8 +2141,7 @@ public class Main extends Application {
               // else continue by getting the set of all possible 3rd moves for the given 1st/2nd
             } else {
               moves3 = getAllLegalMoves(2, tiles3);
-              possible3 = moves3.size();
-              possible3s.add(possible3);
+              possible3s.add(moves3.size());
               for (int[] move3 : moves3) {
                 Tile[][] tiles4 = fakeMove(move3, tiles3);
                 // if this move results in a checkmate, record a -99 in values
@@ -2167,8 +2185,7 @@ public class Main extends Application {
         index += possible2s.get(i);
       }
 
-      // gets the index of the "best" 1st move
-      int moveIndex = getMaxIndex(valuesFinal);
+      int moveIndex = getMaxIndex(moves, valuesFinal, color);
 
       // in the case of a stalemate/checkmate, return an int[] of 4 -1's
       if (moveIndex == -1) {
@@ -2200,7 +2217,7 @@ public class Main extends Application {
       }
 
       // gets the index of the "best" 1st move
-      int moveIndex = getMinIndex(valuesFinal);
+      int moveIndex = getMinIndex(moves, valuesFinal, color);
 
       // in the case of a stalemate/checkmate, return an int[] of 4 -1's
       if (moveIndex == -1) {
@@ -2212,6 +2229,144 @@ public class Main extends Application {
   }
 
   /**
+   * Returns the index of the highest valued move corrected for any preferences
+   * 
+   * @param moves - the list of moves
+   * @param values - the list of move values
+   * @return - the index of the highest valued move (or a highest valued move, if tied)
+   */
+  private int getMaxIndex(List<int[]> moves, List<Integer> values, int color) {
+    // gets the index of the "best" 1st move
+    int[] moveIndexes = getMaxIndexes(values);
+    
+    // if the only index found is zero, return -1
+    if (moveIndexes[0] == -1) {
+      return -1;
+    }
+    
+    List<Integer> valuesCorrected = new ArrayList<Integer>();
+    for (int i : moveIndexes) {
+      valuesCorrected.add(values.get(i) * 100);
+    }
+    
+    for (int i = 0; i < moveIndexes.length; i++) {
+      // prioritizes castling, else deprioritizes moving the king
+      if (tiles[moves.get(i)[0]][moves.get(i)[1]].getPiece() == K) {
+        if (Math.abs(moves.get(i)[1] - moves.get(i)[3]) > 1) {
+          if (color == 1) {
+            valuesCorrected.set(i, valuesCorrected.get(i) + 4);
+          } else {
+            valuesCorrected.set(i, valuesCorrected.get(i) - 4);
+          }
+        } else {
+          if (color == 1) {
+            valuesCorrected.set(i, valuesCorrected.get(i) - 4);
+          } else {
+            valuesCorrected.set(i, valuesCorrected.get(i) + 4);
+          }
+        }
+        // prioritizes pawn promotion when on the opposite side of the board
+      } else if (tiles[moves.get(i)[0]][moves.get(i)[1]].getPiece() == P && color == 1 && moves.get(i)[0] < 4) {
+        valuesCorrected.set(i, valuesCorrected.get(i) + 3);
+      } else if (tiles[moves.get(i)[0]][moves.get(i)[1]].getPiece() == P && color == 2 && moves.get(i)[0] > 4) {
+        valuesCorrected.set(i, valuesCorrected.get(i) - 3);
+        
+        // prioritizes moves towards the center of the board
+      } else if (moves.get(i)[3] == 4 || moves.get(i)[3] == 3) {
+        if (color == 1) {
+          valuesCorrected.set(i, valuesCorrected.get(i) + 2);
+        } else {
+          valuesCorrected.set(i, valuesCorrected.get(i) - 2);
+        }
+      } else if (moves.get(i)[3] == 2 || moves.get(i)[3] == 5) {
+        if (color == 1) {
+          valuesCorrected.set(i, valuesCorrected.get(i) + 2);
+        } else {
+          valuesCorrected.set(i, valuesCorrected.get(i) - 2);
+        }
+      } else if (moves.get(i)[3] == 1 || moves.get(i)[3] == 6) {
+        if (color == 1) {
+          valuesCorrected.set(i, valuesCorrected.get(i) + 1);
+        } else {
+          valuesCorrected.set(i, valuesCorrected.get(i) - 1);
+        }
+      }
+    }
+    
+    // returns the move that was found to have the highest value
+    return moveIndexes[getMaxIndex(valuesCorrected)];
+  }
+  
+  /**
+   * Returns the index of the lowest valued move corrected for any preferences
+   * 
+   * @param moves - the list of moves
+   * @param values - the list of move values
+   * @return - the index of the highest valued move (or a highest valued move, if tied)
+   */
+  private int getMinIndex(List<int[]> moves, List<Integer> values, int color) {
+    // gets the index of the "best" 1st move
+    int[] moveIndexes = getMinIndexes(values);
+    
+    // if the only index found is zero, return -1
+    if (moveIndexes[0] == -1) {
+      return -1;
+    }
+    
+    List<Integer> valuesCorrected = new ArrayList<Integer>();
+    for (int i : moveIndexes) {
+      valuesCorrected.add(values.get(i) * 100);
+    }
+    
+    for (int i = 0; i < moveIndexes.length; i++) {
+      // prioritizes castling, else deprioritizes moving the king
+      if (tiles[moves.get(i)[0]][moves.get(i)[1]].getPiece() == K) {
+        if (Math.abs(moves.get(i)[1] - moves.get(i)[3]) > 1) {
+          if (color == 1) {
+            valuesCorrected.set(i, valuesCorrected.get(i) + 4);
+          } else {
+            valuesCorrected.set(i, valuesCorrected.get(i) - 4);
+          }
+        } else {
+          if (color == 1) {
+            valuesCorrected.set(i, valuesCorrected.get(i) - 4);
+          } else {
+            valuesCorrected.set(i, valuesCorrected.get(i) + 4);
+          }
+        }
+        // prioritizes pawn promotion when on the opposite side of the board
+      } else if (tiles[moves.get(i)[0]][moves.get(i)[1]].getPiece() == P && color == 1 && moves.get(i)[0] < 4) {
+        valuesCorrected.set(i, valuesCorrected.get(i) + 3);
+      } else if (tiles[moves.get(i)[0]][moves.get(i)[1]].getPiece() == P && color == 2 && moves.get(i)[0] > 4) {
+        valuesCorrected.set(i, valuesCorrected.get(i) - 3);
+        
+        // prioritizes moves towards the center of the board
+      } else if (moves.get(i)[3] == 4 || moves.get(i)[3] == 3) {
+        if (color == 1) {
+          valuesCorrected.set(i, valuesCorrected.get(i) + 2);
+        } else {
+          valuesCorrected.set(i, valuesCorrected.get(i) - 2);
+        }
+      } else if (moves.get(i)[3] == 2 || moves.get(i)[3] == 5) {
+        if (color == 1) {
+          valuesCorrected.set(i, valuesCorrected.get(i) + 2);
+        } else {
+          valuesCorrected.set(i, valuesCorrected.get(i) - 2);
+        }
+      } else if (moves.get(i)[3] == 1 || moves.get(i)[3] == 6) {
+        if (color == 1) {
+          valuesCorrected.set(i, valuesCorrected.get(i) + 1);
+        } else {
+          valuesCorrected.set(i, valuesCorrected.get(i) - 1);
+        }
+      }
+    }
+    
+    // returns the move that was found to have the highest value
+    return moveIndexes[getMinIndex(valuesCorrected)];
+  }
+
+  /**
    * Gets the max number in a list from given indexes
    * 
    * @param values - the list of integers being searched for a max
@@ -2220,7 +2375,7 @@ public class Main extends Application {
    * @return - the highest int in the list
    */
   private int getMax(List<Integer> values, int startIndex, int endIndex) {
-    int max = -100;
+    int max = -100000;
     
     for (int i = startIndex; i <= endIndex; i++) {
       if (values.get(i) > max) {
@@ -2240,7 +2395,7 @@ public class Main extends Application {
    * @return - the highest int in the list
    */
   private int getMin(List<Integer> values, int startIndex, int endIndex) {
-    int min = 100;
+    int min = 100000;
     
     for (int i = startIndex; i <= endIndex; i++) {
       if (values.get(i) < min) {
@@ -2252,30 +2407,121 @@ public class Main extends Application {
   }
   
   /**
+   * Gets the index of the highest values in the list
+   * 
+   * @param values - the list from which the index of the max value is gotten
+   * @return - the index of the highest value in the list
+   */
+  private int[] getMaxIndexes(List<Integer> values) {
+    // starts with a negative index, and a max that is lower than any possible value for a board
+    // state
+    int index = -1;
+    int max = -10000;
+    // creates a list to store the indexes of all values that are equal
+    List<Integer> indexes = new ArrayList<Integer>();
+    
+    for (int i = 0; i < values.size(); i++) {
+      // if the value is bigger than the current max, save the index of that value as the new index
+      // clear out the current list of equal indexes, and add the new index to the list
+      if (values.get(i) > max) {
+        max = values.get(i);
+        index = i;
+        indexes.clear();
+        indexes.add(index);
+      } else if (values.get(i) == max) {
+        indexes.add(i);
+      }
+    }
+    
+    // if no value was found, return -1
+    if (index == -1) {
+      return new int[]{-1};
+    }
+    
+    // turns indexes into an int[]
+    int[] returnedIndexes = new int[indexes.size()];
+    for (int i = 0; i < indexes.size(); i++) {
+      returnedIndexes[i] = indexes.get(i);
+    }
+    return returnedIndexes;
+  }
+  
+  /**
+   * Gets the indexes of the lowest values in the list
+   * 
+   * @param values - the list from which the index of the max value is gotten
+   * @return - the index of the highest value in the list
+   */
+  private int[] getMinIndexes(List<Integer> values) {
+    // starts with a negative index, and a min that is higher than any possible value for a board
+    // state
+    int index = -1;
+    int min = 10000;
+    // creates a list to store the indexes of all values that are equal
+    List<Integer> indexes = new ArrayList<Integer>();
+    
+    for (int i = 0; i < values.size(); i++) {
+      // if the value is lesser than the current min, save the index of that value as the new index
+      // clear out the current list of equal indexes, and add the new index to the list
+      if (values.get(i) < min) {
+        min = values.get(i);
+        index = i;
+        indexes.clear();
+        indexes.add(index);
+      } else if (values.get(i) == min) {
+        indexes.add(i);
+      }
+    }
+    
+    // if no value was found, return -1
+    if (index == -1) {
+      return new int[]{-1};
+    }
+    
+    // turns indexes into an int[]
+    int[] returnedIndexes = new int[indexes.size()];
+    for (int i = 0; i < indexes.size(); i++) {
+      returnedIndexes[i] = indexes.get(i);
+    }
+    return returnedIndexes;
+  }
+
+  /**
    * Gets the index of the highest value in the list
    * 
    * @param values - the list from which the index of the max value is gotten
    * @return - the index of the highest value in the list
    */
   private int getMaxIndex(List<Integer> values) {
+    // starts with a negative index, and a max that is lower than any possible value for a board
+    // state
     int index = -1;
-    int max = -100;
+    int max = -10000;
+    // creates a list to store the indexes of all values that are equal
+    List<Integer> indexes = new ArrayList<Integer>();
     
     for (int i = 0; i < values.size(); i++) {
+      // if the value is hgiher than the current max, save the index of that value as the new index
+      // clear out the current list of equal indexes, and add the new index to the list
       if (values.get(i) > max) {
         max = values.get(i);
         index = i;
+        indexes.clear();
+        indexes.add(index);
       } else if (values.get(i) == max) {
-        int rand = r.nextInt(2);
-        if (rand == 1) {
-          index = i;
-        }
+        indexes.add(i);
       }
     }
     
-    return index;
+    // returns -1 if no value is found
+    if (index == -1) {
+      return index;
+    }
+    
+    // gets a random index from the list of equal valued indexes to return
+    return indexes.get(r.nextInt(indexes.size()));
   }
-
+  
   /**
    * Gets the index of the lowest value in the list
    * 
@@ -2283,22 +2529,33 @@ public class Main extends Application {
    * @return - the index of the lowest value in the list
    */
   private int getMinIndex(List<Integer> values) {
+    // starts with a negative index, and a min that is higher than any possible value for a board
+    // state
     int index = -1;
-    int min = 100;
+    int min = 10000;
+    // creates a list to store the indexes of all values that are equal
+    List<Integer> indexes = new ArrayList<Integer>();
     
     for (int i = 0; i < values.size(); i++) {
+      // if the value is lesser than the current min, save the index of that value as the new index
+      // clear out the current list of equal indexes, and add the new index to the list
       if (values.get(i) < min) {
         min = values.get(i);
         index = i;
+        indexes.clear();
+        indexes.add(index);
       } else if (values.get(i) == min) {
-        int rand = r.nextInt(2);
-        if (rand == 1) {
-          index = i;
-        }
+        indexes.add(i);
       }
     }
     
-    return index;
+    // returns -1 if no value is found
+    if (index == -1) {
+      return index;
+    }
+    
+    // gets a random index from the list of equal valued indexes to return
+    return indexes.get(r.nextInt(indexes.size()));
   }
   
   /**
@@ -2473,6 +2730,12 @@ public class Main extends Application {
     // gets the "best" move
     int[] move = getMove(1, tiles);
     
+    // if no move is able to be gotten
+    if (Arrays.equals(move, new int[] {-1, -1, -1, -1})) {
+      tryAgain.setText("White has no available moves, the game is over.");
+      return;
+    }
+    
     // plays the move
     try {
       move(move[0], move[1], move[2], move[3]);
@@ -2510,6 +2773,12 @@ public class Main extends Application {
     }
     
     int[] move = getMove(2, tiles);
+    
+    // if no move is able to be gotten
+    if (Arrays.equals(move, new int[] {-1, -1, -1, -1})) {
+      tryAgain.setText("Black has no available moves, the game is over.");
+      return;
+    }
     
     try {
       move(move[0], move[1], move[2], move[3]);
