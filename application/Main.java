@@ -702,7 +702,7 @@ public class Main extends Application {
       }
     } else {
       // check if the move is legal (not including special moves
-      if (isLegalMove(pressed, i, j)) {
+      if (isLegalMove(pressed, i, j, tiles)) {
         try {
           move(pressed[0], pressed[1], i, j);
           pressed = NONE;
@@ -782,7 +782,7 @@ public class Main extends Application {
    * @param j     - value representing the column of the button pushed
    * @return
    */
-  private boolean isLegalMove(int[] piece, int i, int j) {
+  private boolean isLegalMove(int[] piece, int i, int j, Tile[][] tiles) {
     int fromI = piece[0];
     int fromJ = piece[1];
     int pieceType = piece[3];
@@ -851,11 +851,11 @@ public class Main extends Application {
         if (Arrays.equals(move, new int[] {i, j})) {
           // if the king is in check after the given move, return false
           if (pieceColor == 1) {
-            if (!castling && wouldBeCheck(piece, move)) {
+            if (!castling && wouldBeCheck(piece, move, tiles)) {
               return false;
             }
           } else if (pieceColor == 2) {
-            if (!castling && wouldBeCheck(piece, move)) {
+            if (!castling && wouldBeCheck(piece, move, tiles)) {
               return false;
             }
           }
@@ -1338,7 +1338,7 @@ public class Main extends Application {
    * @param move - the tile the piece is being moved to (0 = i, 1 = j)
    * @return - true if the king would be in check after the move, else false
    */
-  private boolean wouldBeCheck(int[] moved, int[] move) {
+  private boolean wouldBeCheck(int[] moved, int[] move, Tile[][] tiles) {
     // gets a copy of the tiles array so that this method does not affect the playable board
     Tile[][] fakeTiles = copyTiles(tiles);
     
@@ -1396,13 +1396,11 @@ public class Main extends Application {
     // gets a list of all possible moves (0 = fromI, 1 = fromJ, 2 = toI, 3 = toJ)
     List<int[]> moves = getAllLegalMoves(color, tiles);
     
-    for (int[] move : moves) {
-      int piece = tiles[move[0]][move[1]].getPiece();
-      if (!wouldBeCheck(new int[] {move[0], move[1], color, piece}, new int[] {move[2], move[3]})) {
-        return false;
-      }
+    if (moves.size() == 0) {
+      return true;
+    } else {
+      return false;
     }
-    return true;
   }
   
   /**
@@ -1527,7 +1525,7 @@ public class Main extends Application {
       int piece = tiles[move[0]][move[1]].getPiece();
       int pieceColor = tiles[move[0]][move[1]].getPieceColor();
       int[] pieceDetailed = new int[] {move[0], move[1], pieceColor, piece};
-      if (isLegalMove(pieceDetailed, move[2], move[3])) {
+      if (isLegalMove(pieceDetailed, move[2], move[3], tiles)) {
         legalMoves.add(move);
       }
     }
@@ -2145,7 +2143,7 @@ public class Main extends Application {
       }
     }
 
-    // uses min/maxing to get the "best" move
+    // uses 'minimaxing' to get the "best" move
     if (color == 1) {
       // creates a list to store the max values from the sets of 3rd moves
       List<Integer> values2 = new ArrayList<Integer>();
