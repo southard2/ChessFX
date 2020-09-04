@@ -1414,7 +1414,7 @@ public class Main extends Application {
     // find the correctly colored king in the tiles array, if it is in check, return true
     for  (int i = 0; i < 8; i++) {
       for (int j = 0; j < 8; j++) {
-        if (tiles[i][j].getPiece() == K && tiles[i][j].getColor() == color) {
+        if (tiles[i][j].getPiece() == K && tiles[i][j].getPieceColor() == color) {
           if (isInCheck(i, j, color, tiles)) {
             return true;
           }
@@ -2056,106 +2056,126 @@ public class Main extends Application {
     moves = getAllLegalMoves(color, tiles);
     for (int[] move : moves) {
       Tile[][] tiles2 = fakeMove(move, tiles);
-      // else if white is to move, check black's next moves, then white's next moves again
+      // if white is to move, check black's next moves, then white's next moves again
       if (color == 1) {
         // if this move results in a checkmate, record a 99 in values, and set possible2s/3s(i) to
         // 1, as only one outcome is possible
-        if (isCheckMate(2, tiles2)) {
-          values.add(99);
-          possible2s.add(1);
-          possible3s.add(1);
-          // else if this move results in a stalemate, record a 0 in values, and set
-          // possible2s/3s(i) to 1, as only one outcome is possible
-        } else if (isStaleMate(2, tiles2)) {
+        if (isCheck(2, tiles2)) {
+          if (isCheckMate(2, tiles2)) {
+            values.add(99);
+            possible2s.add(1);
+            possible3s.add(1);
+            continue;
+          }
+        }
+        //  else if this move results in a stalemate, record a 0 in values, and set
+        // possible2s/3s(i) to 1, as only one outcome is possible
+        else if (isStaleMate(2, tiles2)) {
           values.add(0);
           possible2s.add(1);
           possible3s.add(1);
-          // else continue by getting the set of all possible 2nd moves for the given 1st
-        } else {
-          moves2 = getAllLegalMoves(2, tiles2);
-          possible2s.add(moves2.size());
-          for (int[] move2 : moves2) {
-            Tile[][] tiles3 = fakeMove(move2, tiles2);
-            // if this move results in a checkmate, record a -99 in values, and set possible2s/3s(i)
-            // to 1, as only one outcome is possible
+          continue;
+        }
+        moves2 = getAllLegalMoves(2, tiles2);
+        possible2s.add(moves2.size());
+        for (int[] move2 : moves2) {
+          Tile[][] tiles3 = fakeMove(move2, tiles2);
+          // if this move results in a checkmate, record a -99 in values, and set possible3s(i) to
+          // 1, as only one outcome is possible
+          if (isCheck(1, tiles)) {
             if (isCheckMate(1, tiles3)) {
               values.add(-99);
               possible3s.add(1);
-              // else if this move results in a stalemate, record a 0 in values, and set
-              // possible2s/3s(i) to 1, as only one outcome is possible
-            } else if (isStaleMate(1, tiles3)) {
-              values.add(0);
-              possible3s.add(1);
-              // else continue by getting the set of all possible 3rd moves for the given 1st/2nd
-            } else {
-              moves3 = getAllLegalMoves(1, tiles3);
-              possible3s.add(moves3.size());
-              for (int[] move3 : moves3) {
-                Tile[][] tiles4 = fakeMove(move3, tiles3);
-                // if this move results in a checkmate, record a 99 in values
-                if (isCheckMate(2, tiles4)) {
-                  values.add(99);;
-                  // else if this move results in a stalemate, record a 0 in values
-                } else if (isStaleMate(2, tiles4)) {
-                  values.add(0);;
-                  // else get the value of all pieces on the board and record that into values
-                } else {
-                  values.add(getBoardValue(tiles4));
-                }
+              continue;
+            }
+          }
+          //  else if this move results in a stalemate, record a 0 in values, and set
+          // possible3s(i) to 1, as only one outcome is possible
+          else if (isStaleMate(1, tiles3)) {
+            values.add(0);
+            possible3s.add(1);
+            continue;
+          }
+          moves3 = getAllLegalMoves(1, tiles3);
+          possible3s.add(moves3.size());
+          for (int[] move3 : moves3) {
+            Tile[][] tiles4 = fakeMove(move3, tiles3);
+            // if this move results in a checkmate, record a 99 in values
+            if (isCheck(2, tiles4)) {
+              if (isCheckMate(2, tiles4)) {
+                values.add(99);
+                continue;
               }
             }
+            //  else if this move results in a stalemate, record a 0 in values
+            else if (isStaleMate(2, tiles4)) {
+              values.add(0);
+              continue;
+            }
+            // if no check/stalemate is found, add the value to the list
+            values.add(getBoardValue(tiles4));
           }
         }
       }
-      
+
       // else if black is to move, check white's next moves, then black's next moves again
       else {
-        // if this move results in a checkmate, record a -99 in values, and set possible2s/3s(i) to
+     // if this move results in a checkmate, record a -99 in values, and set possible2s/3s(i) to
         // 1, as only one outcome is possible
-        if (isCheckMate(1, tiles2)) {
-          values.add(-99);
-          possible2s.add(1);
-          possible3s.add(1);
-          // else if this move results in a stalemate, record a 0 in values, and set
-          // possible2s/3s(i) to 1, as only one outcome is possible
-        } else if (isStaleMate(1, tiles2)) {
+        if (isCheck(1, tiles2)) {
+          if (isCheckMate(1, tiles2)) {
+            values.add(-99);
+            possible2s.add(1);
+            possible3s.add(1);
+            continue;
+          }
+        }
+        //  else if this move results in a stalemate, record a 0 in values, and set
+        // possible2s/3s(i) to 1, as only one outcome is possible
+        else if (isStaleMate(1, tiles2)) {
           values.add(0);
           possible2s.add(1);
           possible3s.add(1);
-          // else continue by getting the set of all possible 2nd moves for the given 1st
-        } else {
-          moves2 = getAllLegalMoves(1, tiles2);
-          possible2s.add(moves2.size());
-          for (int[] move2 : moves2) {
-            Tile[][] tiles3 = fakeMove(move2, tiles2);
-            // if this move results in a checkmate, record a 99 in values, and set possible2s/3s(i)
-            // to 1, as only one outcome is possible
+          continue;
+        }
+        moves2 = getAllLegalMoves(1, tiles2);
+        possible2s.add(moves2.size());
+        for (int[] move2 : moves2) {
+          Tile[][] tiles3 = fakeMove(move2, tiles2);
+          // if this move results in a checkmate, record a 99 in values, and set possible3s(i) to
+          // 1, as only one outcome is possible
+          if (isCheck(2, tiles3)) {
             if (isCheckMate(2, tiles3)) {
               values.add(99);
               possible3s.add(1);
-              // else if this move results in a stalemate, record a 0 in values, and set
-              // possible2s/3s(i) to 1, as only one outcome is possible
-            } else if (isStaleMate(2, tiles3)) {
-              values.add(0);
-              possible3s.add(1);
-              // else continue by getting the set of all possible 3rd moves for the given 1st/2nd
-            } else {
-              moves3 = getAllLegalMoves(2, tiles3);
-              possible3s.add(moves3.size());
-              for (int[] move3 : moves3) {
-                Tile[][] tiles4 = fakeMove(move3, tiles3);
-                // if this move results in a checkmate, record a -99 in values
-                if (isCheckMate(1, tiles4)) {
-                  values.add(-99);;
-                  // else if this move results in a stalemate, record a 0 in values
-                } else if (isStaleMate(1, tiles4)) {
-                  values.add(0);;
-                  // else get the value of all pieces on the board and record that into values
-                } else {
-                  values.add(getBoardValue(tiles4));
-                }
+              continue;
+            }
+          }
+          //  else if this move results in a stalemate, record a 0 in values, and set
+          // possible3s(i) to 1, as only one outcome is possible
+          else if (isStaleMate(2, tiles3)) {
+            values.add(0);
+            possible3s.add(1);
+            continue;
+          }
+          moves3 = getAllLegalMoves(2, tiles3);
+          possible3s.add(moves3.size());
+          for (int[] move3 : moves3) {
+            Tile[][] tiles4 = fakeMove(move3, tiles3);
+            // if this move results in a checkmate, record a -99 in values
+            if (isCheck(1, tiles4)) {
+              if (isCheckMate(1, tiles4)) {
+                values.add(-99);
+                continue;
               }
             }
+            //  else if this move results in a stalemate, record a 0 in values
+            else if (isStaleMate(1, tiles4)) {
+              values.add(0);
+              continue;
+            }
+            // if no check/stalemate is found, add the value to the list
+            values.add(getBoardValue(tiles4));
           }
         }
       }
