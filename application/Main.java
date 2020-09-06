@@ -2056,10 +2056,11 @@ public class Main extends Application {
     moves = getAllLegalMoves(color, tiles);
     for (int[] move : moves) {
       Tile[][] tiles2 = fakeMove(move, tiles);
-      // if white is to move, check black's next moves, then white's next moves again
+      // if white is to move, check black's next moves, then white's next moves again, then black's
+      // next moves, then finally white's next moves again
       if (color == 1) {
-        // if this move results in a checkmate, record a 99 in values, and set possible2s/3s(i) to
-        // 1, as only one outcome is possible
+        // if this move results in a checkmate, record a 99 in values, and set
+        // all the remaining iterations of possible to 1
         if (isCheck(2, tiles2)) {
           if (isCheckMate(2, tiles2)) {
             values.add(99);
@@ -2069,7 +2070,7 @@ public class Main extends Application {
           }
         }
         //  else if this move results in a stalemate, record a 0 in values, and set
-        // possible2s/3s(i) to 1, as only one outcome is possible
+        // all the remaining iterations of possible to 1
         else if (isStaleMate(2, tiles2)) {
           values.add(0);
           possible2s.add(1);
@@ -2080,8 +2081,8 @@ public class Main extends Application {
         possible2s.add(moves2.size());
         for (int[] move2 : moves2) {
           Tile[][] tiles3 = fakeMove(move2, tiles2);
-          // if this move results in a checkmate, record a -99 in values, and set possible3s(i) to
-          // 1, as only one outcome is possible
+          // if this move results in a checkmate, record a -99 in values, and set
+          // all the remaining iterations of possible to 1
           if (isCheck(1, tiles)) {
             if (isCheckMate(1, tiles3)) {
               values.add(-99);
@@ -2090,7 +2091,7 @@ public class Main extends Application {
             }
           }
           //  else if this move results in a stalemate, record a 0 in values, and set
-          // possible3s(i) to 1, as only one outcome is possible
+          // all the remaining iterations of possible to 1
           else if (isStaleMate(1, tiles3)) {
             values.add(0);
             possible3s.add(1);
@@ -2107,21 +2108,23 @@ public class Main extends Application {
                 continue;
               }
             }
-            //  else if this move results in a stalemate, record a 0 in values
+            // else if this move results in a stalemate, record a 0 in values
             else if (isStaleMate(2, tiles4)) {
               values.add(0);
               continue;
             }
+
             // if no check/stalemate is found, add the value to the list
             values.add(getBoardValue(tiles4));
+
           }
         }
       }
 
-      // else if black is to move, check white's next moves, then black's next moves again
+      // else if black is to move, check the next 4 possible moves, starting with white's next move
       else {
-     // if this move results in a checkmate, record a -99 in values, and set possible2s/3s(i) to
-        // 1, as only one outcome is possible
+        // if this move results in a checkmate, record a -99 in values, and set
+        // all the remaining iterations of possible to 1
         if (isCheck(1, tiles2)) {
           if (isCheckMate(1, tiles2)) {
             values.add(-99);
@@ -2131,7 +2134,7 @@ public class Main extends Application {
           }
         }
         //  else if this move results in a stalemate, record a 0 in values, and set
-        // possible2s/3s(i) to 1, as only one outcome is possible
+        // all the remaining iterations of possible to 1
         else if (isStaleMate(1, tiles2)) {
           values.add(0);
           possible2s.add(1);
@@ -2142,9 +2145,9 @@ public class Main extends Application {
         possible2s.add(moves2.size());
         for (int[] move2 : moves2) {
           Tile[][] tiles3 = fakeMove(move2, tiles2);
-          // if this move results in a checkmate, record a 99 in values, and set possible3s(i) to
-          // 1, as only one outcome is possible
-          if (isCheck(2, tiles3)) {
+          // if this move results in a checkmate, record a 99 in values, and set
+          // all the remaining iterations of possible to 1
+          if (isCheck(2, tiles)) {
             if (isCheckMate(2, tiles3)) {
               values.add(99);
               possible3s.add(1);
@@ -2152,7 +2155,7 @@ public class Main extends Application {
             }
           }
           //  else if this move results in a stalemate, record a 0 in values, and set
-          // possible3s(i) to 1, as only one outcome is possible
+          // all the remaining iterations of possible to 1
           else if (isStaleMate(2, tiles3)) {
             values.add(0);
             possible3s.add(1);
@@ -2162,14 +2165,16 @@ public class Main extends Application {
           possible3s.add(moves3.size());
           for (int[] move3 : moves3) {
             Tile[][] tiles4 = fakeMove(move3, tiles3);
-            // if this move results in a checkmate, record a -99 in values
+            // if this move results in a checkmate, record a -99 in values, and set
+            // all the remaining iterations of possible to 1
             if (isCheck(1, tiles4)) {
               if (isCheckMate(1, tiles4)) {
                 values.add(-99);
                 continue;
               }
             }
-            //  else if this move results in a stalemate, record a 0 in values
+            // else if this move results in a stalemate, record a 0 in values, and set
+            // all the remaining iterations of possible to 1
             else if (isStaleMate(1, tiles4)) {
               values.add(0);
               continue;
@@ -2214,10 +2219,10 @@ public class Main extends Application {
         return moves.get(moveIndex);
       }
     } else {
-      // creates a list to store the min values from the sets of 3rd moves
+      // creates a list to store the max values from the sets of 3rd moves
       List<Integer> values2 = new ArrayList<Integer>();
 
-      // loop to get all min values from sets of possible 3rd moves
+      // loop to get all max values from sets of possible 3rd moves
       // Define a "set" as the grouping of moves that can come after a given 1st/2nd move
       int index = -1;
       for (int i = 0; i < possible3s.size(); i++) {
@@ -2225,10 +2230,10 @@ public class Main extends Application {
         index += possible3s.get(i);
       }
 
-      // creates a list to store the max values from the sets of second moves
+      // creates a list to store the min values from the sets of second moves
       List<Integer> valuesFinal = new ArrayList<Integer>();
 
-      // loop to get all max values from sets of possible 2rd moves
+      // loop to get all min values from sets of possible 2rd moves
       // Define a "set" as the grouping of moves that can come after a given 1st/2nd move
       index = -1;
       for (int i = 0; i < possible2s.size(); i++) {
@@ -2236,7 +2241,6 @@ public class Main extends Application {
         index += possible2s.get(i);
       }
 
-      // gets the index of the "best" 1st move
       int moveIndex = getMinIndex(moves, valuesFinal, color);
 
       // in the case of a stalemate/checkmate, return an int[] of 4 -1's
@@ -2274,15 +2278,15 @@ public class Main extends Application {
       if (tiles[moves.get(i)[0]][moves.get(i)[1]].getPiece() == K) {
         if (Math.abs(moves.get(i)[1] - moves.get(i)[3]) > 1) {
           if (color == 1) {
-            valuesCorrected.set(i, valuesCorrected.get(i) + 4);
+            valuesCorrected.set(i, valuesCorrected.get(i) + 5);
           } else {
-            valuesCorrected.set(i, valuesCorrected.get(i) - 4);
+            valuesCorrected.set(i, valuesCorrected.get(i) - 5);
           }
         } else {
           if (color == 1) {
-            valuesCorrected.set(i, valuesCorrected.get(i) - 4);
+            valuesCorrected.set(i, valuesCorrected.get(i) - 5);
           } else {
-            valuesCorrected.set(i, valuesCorrected.get(i) + 4);
+            valuesCorrected.set(i, valuesCorrected.get(i) + 5);
           }
         }
         // prioritizes pawn promotion when on the opposite side of the board
@@ -2310,6 +2314,11 @@ public class Main extends Application {
         } else {
           valuesCorrected.set(i, valuesCorrected.get(i) - 1);
         }
+      }
+      
+      // prioritizes moves that take a piece
+      if (tiles[moves.get(i)[2]][moves.get(i)[3]].getPieceColor() != 0) {
+        valuesCorrected.set(i, valuesCorrected.get(i) + 4);
       }
     }
     
@@ -2600,9 +2609,13 @@ public class Main extends Application {
     if (piece == P) {
       if (fromJ != toJ && newTiles[toI][toJ].getPieceColor() == 0) {
         if (pieceColor == 1) {
-          newTiles[toI + 1][toJ].setPiece(0, 0);
+          if (toI + 1 < 8) {
+            newTiles[toI + 1][toJ].setPiece(0, 0);
+          }
         } else {
-          newTiles[toI - 1][toJ].setPiece(0, 0);
+          if (toI - 1 > 0) {
+            newTiles[toI - 1][toJ].setPiece(0, 0);
+          }
         }
       }
     }
