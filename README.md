@@ -1,2 +1,2 @@
 # ChessFX
-Chess game made with JavaFX with one and two player modes
+Chess game made with JavaFX that allows the user to have the program make moves.
