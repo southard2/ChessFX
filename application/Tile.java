@@ -1,6 +1,6 @@
 /**
  * Title: Chess 
- * Files: Main.java, Tile.java 
+ * Files: Main.java, Tile.java, ValueList.java
  * Start Date: 7/17/2020 
  * End Date: - 
  * Author: Danny Southard

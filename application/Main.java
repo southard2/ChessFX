@@ -1,6 +1,6 @@
 /**
  * Title: Chess 
- * Files: Main.java, Tile.java 
+ * Files: Main.java, Tile.java, ValueList.java
  * Start Date: 7/17/2020 
  * End Date: - 
  * Author: Danny Southard
@@ -127,6 +127,7 @@ public class Main extends Application {
     board.setMaxHeight(600);
     board.setMaxWidth(600);
     
+    // sets up a button to get a move from the computer
     Button whiteMove = new Button();
     Button blackMove = new Button();
     whiteMove.setGraphic(new Label("CPU Move (White)"));
@@ -2029,6 +2030,180 @@ public class Main extends Application {
   }
   
   /**
+   * Helper method for getMove that gets the values of the board state after white's best possible
+   * moves after 2 moves (assuming white is to play)
+   * 
+   * White's "best" move is defined as the move that results in the greatest board value (white pieces
+   * count as positive values in the board value calculation)
+   * 
+   * ex) if white is up a pawn, value = 1 for that state 
+   * ex) if black is up a bishop, value = -3 for that state
+   * 
+   * @param moves      - the list of possible moves to be made from the current board state
+   * @param possible2s - list to hold the number of possible moves after a move is made
+   * @param tiles      - an array of tiles representing the current board state
+   * @return an ArrayList of Integers representing the value of the board state of each of three
+   */
+  private ValueList<Integer> getValuesWhite(List<int[]> moves, List<Integer> possible2s, Tile[][] tiles) {
+    // creates a list to store the values of the given board state
+    ValueList<Integer> values = new ValueList<Integer>();
+    
+    // creates lists to hold the possible moves to be made on a given turn
+    List<int[]> moves2 = new ArrayList<int[]>();
+    List<int[]> moves3 = new ArrayList<int[]>();
+    
+    int index = 0;
+    
+    for (int[] move : moves) {
+      Tile[][] tiles2 = fakeMove(move, tiles);
+      // if this move results in a checkmate, record a 99 in values, and set
+      // all the remaining iterations of possible to 1
+      if (isCheck(2, tiles2)) {
+        if (isCheckMate(2, tiles2)) {
+          values.add(99);
+          possible2s.add(1);
+          continue;
+        }
+      }
+      //  else if this move results in a stalemate, record a 0 in values, and set
+      // all the remaining iterations of possible to 1
+      else if (isStaleMate(2, tiles2)) {
+        values.add(0);
+        possible2s.add(1);
+        continue;
+      }
+      moves2 = getAllLegalMoves(2, tiles2);
+      possible2s.add(moves2.size());
+      for (int[] move2 : moves2) {
+        Tile[][] tiles3 = fakeMove(move2, tiles2);
+        // if this move results in a checkmate, record a -99 in values, and set
+        // all the remaining iterations of possible to 1
+        if (isCheck(1, tiles)) {
+          if (isCheckMate(1, tiles3)) {
+            values.add(-99);
+            continue;
+          }
+        }
+        //  else if this move results in a stalemate, record a 0 in values, and set
+        // all the remaining iterations of possible to 1
+        else if (isStaleMate(1, tiles3)) {
+          values.add(0);
+          continue;
+        }
+        moves3 = getAllLegalMoves(1, tiles3);
+        for (int[] move3 : moves3) {
+          Tile[][] tiles4 = fakeMove(move3, tiles3);
+          // if this move results in a checkmate, record a 99 in values
+          if (isCheck(2, tiles4)) {
+            if (isCheckMate(2, tiles4)) {
+              values.add(99);
+              continue;
+            }
+          }
+          // else if this move results in a stalemate, record a 0 in values
+          else if (isStaleMate(2, tiles4)) {
+            values.add(0);
+            continue;
+          }
+
+          // if no check/stalemate is found, add the value to the list
+          values.addGreatest(index, (Integer)getBoardValue(tiles4));
+        }
+        index += 1; // increments the index after each set of first moves
+      }
+    }
+    
+    return values;
+  }
+
+  /**
+   * Helper method for getMove that gets the values of the board state after black's best possible
+   * moves after 2 moves (assuming black is to play)
+   * 
+   * Black's "best" move is defined as the move that results in the lowest board value (black pieces
+   * count as negative values in the board value calculation)
+   * 
+   * ex) if white is up a pawn, value = 1 for that state 
+   * ex) if black is up a bishop, value = -3 for that state
+   * 
+   * @param moves      - the list of possible moves to be made from the current board state
+   * @param possible2s - list to hold the number of possible moves after a move is made
+   * @param tiles      - an array of tiles representing the current board state
+   * @return an ArrayList of Integers representing the value of the board state of each of three
+   */
+  private ValueList<Integer> getValuesBlack(List<int[]> moves, List<Integer> possible2s, Tile[][] tiles) {
+    // creates a list to store the values of the given board state
+    ValueList<Integer> values = new ValueList<Integer>();
+    
+    // creates lists to hold the possible moves to be made on a given turn
+    List<int[]> moves2 = new ArrayList<int[]>();
+    List<int[]> moves3 = new ArrayList<int[]>();
+    
+    int index = 0;
+    
+    for (int[] move : moves) {
+      Tile[][] tiles2 = fakeMove(move, tiles);
+      // if this move results in a checkmate, record a 99 in values, and set
+      // all the remaining iterations of possible to 1
+      if (isCheck(1, tiles2)) {
+        if (isCheckMate(1, tiles2)) {
+          values.add(99);
+          possible2s.add(1);
+          continue;
+        }
+      }
+      //  else if this move results in a stalemate, record a 0 in values, and set
+      // all the remaining iterations of possible to 1
+      else if (isStaleMate(1, tiles2)) {
+        values.add(0);
+        possible2s.add(1);
+        continue;
+      }
+      moves2 = getAllLegalMoves(1, tiles2);
+      possible2s.add(moves2.size());
+      for (int[] move2 : moves2) {
+        Tile[][] tiles3 = fakeMove(move2, tiles2);
+        // if this move results in a checkmate, record a -99 in values, and set
+        // all the remaining iterations of possible to 1
+        if (isCheck(2, tiles)) {
+          if (isCheckMate(2, tiles3)) {
+            values.add(-99);
+            continue;
+          }
+        }
+        //  else if this move results in a stalemate, record a 0 in values, and set
+        // all the remaining iterations of possible to 1
+        else if (isStaleMate(2, tiles3)) {
+          values.add(0);
+          continue;
+        }
+        moves3 = getAllLegalMoves(2, tiles3);
+        for (int[] move3 : moves3) {
+          Tile[][] tiles4 = fakeMove(move3, tiles3);
+          // if this move results in a checkmate, record a 99 in values
+          if (isCheck(1, tiles4)) {
+            if (isCheckMate(1, tiles4)) {
+              values.add(-99);
+              continue;
+            }
+          }
+          // else if this move results in a stalemate, record a 0 in values
+          else if (isStaleMate(1, tiles4)) {
+            values.add(0);
+            continue;
+          }
+
+          // if no check/stalemate is found, add the value to the list
+          values.addLowest(index, (Integer)getBoardValue(tiles4));
+        }
+        index += 1; // increments the index after each set of first moves 
+      }
+    }
+    
+    return values;
+  }
+  
+  /**
    * Gets the "best" move for the given color on the given board state
    * 
    * NOTE: this algorithm, combined with the way I put together castling/en passant, may not
@@ -2040,177 +2215,38 @@ public class Main extends Application {
    */
   private int[] getMove(int color, Tile[][] tiles) {
     // creates a list to store the values of the given board state
-    List<Integer> values = new ArrayList<Integer>();
+    ValueList<Integer> values;
 
     // creates lists to hold the possible moves to be made on a given turn
     List<int[]> moves = new ArrayList<int[]>();
-    List<int[]> moves2 = new ArrayList<int[]>();
-    List<int[]> moves3 = new ArrayList<int[]>();
     
     // creates Integer lists to hold the number of possible moves after a given set of moves
     ArrayList<Integer> possible2s = new ArrayList<Integer>();
-    ArrayList<Integer> possible3s = new ArrayList<Integer>();
-
 
     // start by getting all possible moves for the given color
     moves = getAllLegalMoves(color, tiles);
-    for (int[] move : moves) {
-      Tile[][] tiles2 = fakeMove(move, tiles);
-      // if white is to move, check black's next moves, then white's next moves again, then black's
-      // next moves, then finally white's next moves again
-      if (color == 1) {
-        // if this move results in a checkmate, record a 99 in values, and set
-        // all the remaining iterations of possible to 1
-        if (isCheck(2, tiles2)) {
-          if (isCheckMate(2, tiles2)) {
-            values.add(99);
-            possible2s.add(1);
-            possible3s.add(1);
-            continue;
-          }
-        }
-        //  else if this move results in a stalemate, record a 0 in values, and set
-        // all the remaining iterations of possible to 1
-        else if (isStaleMate(2, tiles2)) {
-          values.add(0);
-          possible2s.add(1);
-          possible3s.add(1);
-          continue;
-        }
-        moves2 = getAllLegalMoves(2, tiles2);
-        possible2s.add(moves2.size());
-        for (int[] move2 : moves2) {
-          Tile[][] tiles3 = fakeMove(move2, tiles2);
-          // if this move results in a checkmate, record a -99 in values, and set
-          // all the remaining iterations of possible to 1
-          if (isCheck(1, tiles)) {
-            if (isCheckMate(1, tiles3)) {
-              values.add(-99);
-              possible3s.add(1);
-              continue;
-            }
-          }
-          //  else if this move results in a stalemate, record a 0 in values, and set
-          // all the remaining iterations of possible to 1
-          else if (isStaleMate(1, tiles3)) {
-            values.add(0);
-            possible3s.add(1);
-            continue;
-          }
-          moves3 = getAllLegalMoves(1, tiles3);
-          possible3s.add(moves3.size());
-          for (int[] move3 : moves3) {
-            Tile[][] tiles4 = fakeMove(move3, tiles3);
-            // if this move results in a checkmate, record a 99 in values
-            if (isCheck(2, tiles4)) {
-              if (isCheckMate(2, tiles4)) {
-                values.add(99);
-                continue;
-              }
-            }
-            // else if this move results in a stalemate, record a 0 in values
-            else if (isStaleMate(2, tiles4)) {
-              values.add(0);
-              continue;
-            }
 
-            // if no check/stalemate is found, add the value to the list
-            values.add(getBoardValue(tiles4));
-
-          }
-        }
-      }
-
-      // else if black is to move, check the next 4 possible moves, starting with white's next move
-      else {
-        // if this move results in a checkmate, record a -99 in values, and set
-        // all the remaining iterations of possible to 1
-        if (isCheck(1, tiles2)) {
-          if (isCheckMate(1, tiles2)) {
-            values.add(-99);
-            possible2s.add(1);
-            possible3s.add(1);
-            continue;
-          }
-        }
-        //  else if this move results in a stalemate, record a 0 in values, and set
-        // all the remaining iterations of possible to 1
-        else if (isStaleMate(1, tiles2)) {
-          values.add(0);
-          possible2s.add(1);
-          possible3s.add(1);
-          continue;
-        }
-        moves2 = getAllLegalMoves(1, tiles2);
-        possible2s.add(moves2.size());
-        for (int[] move2 : moves2) {
-          Tile[][] tiles3 = fakeMove(move2, tiles2);
-          // if this move results in a checkmate, record a 99 in values, and set
-          // all the remaining iterations of possible to 1
-          if (isCheck(2, tiles)) {
-            if (isCheckMate(2, tiles3)) {
-              values.add(99);
-              possible3s.add(1);
-              continue;
-            }
-          }
-          //  else if this move results in a stalemate, record a 0 in values, and set
-          // all the remaining iterations of possible to 1
-          else if (isStaleMate(2, tiles3)) {
-            values.add(0);
-            possible3s.add(1);
-            continue;
-          }
-          moves3 = getAllLegalMoves(2, tiles3);
-          possible3s.add(moves3.size());
-          for (int[] move3 : moves3) {
-            Tile[][] tiles4 = fakeMove(move3, tiles3);
-            // if this move results in a checkmate, record a -99 in values, and set
-            // all the remaining iterations of possible to 1
-            if (isCheck(1, tiles4)) {
-              if (isCheckMate(1, tiles4)) {
-                values.add(-99);
-                continue;
-              }
-            }
-            // else if this move results in a stalemate, record a 0 in values, and set
-            // all the remaining iterations of possible to 1
-            else if (isStaleMate(1, tiles4)) {
-              values.add(0);
-              continue;
-            }
-            // if no check/stalemate is found, add the value to the list
-            values.add(getBoardValue(tiles4));
-          }
-        }
-      }
-    }
-
-    // uses 'minimaxing' to get the "best" move
+    // gets the list of values representing the highest value white can get on their third move
+    // after any combination of 2 moves
     if (color == 1) {
-      // creates a list to store the max values from the sets of 3rd moves
-      List<Integer> values2 = new ArrayList<Integer>();
-
-      // loop to get all max values from sets of possible 3rd moves
-      // Define a "set" as the grouping of moves that can come after a given 1st/2nd move
+      values = getValuesWhite(moves, possible2s, tiles);
+    } else {
+      values = getValuesBlack(moves, possible2s, tiles);
+    }
+    
+    // gets the best move based on what color is to play using the values list
+    if (color == 1) {
+      // loop to get all min values from sets of possible 2nd moves, as black would likely play the
+      // move that results in the best board state for black
+      // Define a "set" as the grouping of moves that can come after a given move
       int index = -1;
-      for (int i = 0; i < possible3s.size(); i++) {
-        values2.add(getMax(values, index + 1, index + possible3s.get(i)));
-        index += possible3s.get(i);
-      }
-
-      // creates a list to store the min values from the sets of second moves
-      List<Integer> valuesFinal = new ArrayList<Integer>();
-
-      // loop to get all min values from sets of possible 2rd moves
-      // Define a "set" as the grouping of moves that can come after a given 1st/2nd move
-      index = -1;
+      ValueList<Integer> values2 = new ValueList<Integer>();
       for (int i = 0; i < possible2s.size(); i++) {
-        valuesFinal.add(getMin(values2, index + 1, index + possible2s.get(i)));
+        values2.add(getMin(values, index + 1, index + possible2s.get(i)));
         index += possible2s.get(i);
       }
-
-      int moveIndex = getMaxIndex(moves, valuesFinal, color);
+      
+      int moveIndex = getMaxIndex(moves, values2, color);
 
       // in the case of a stalemate/checkmate, return an int[] of 4 -1's
       if (moveIndex == -1) {
@@ -2219,29 +2255,17 @@ public class Main extends Application {
         return moves.get(moveIndex);
       }
     } else {
-      // creates a list to store the max values from the sets of 3rd moves
-      List<Integer> values2 = new ArrayList<Integer>();
-
-      // loop to get all max values from sets of possible 3rd moves
-      // Define a "set" as the grouping of moves that can come after a given 1st/2nd move
+      // loop to get all max values from sets of possible 2nd moves, as white would likely play the
+      // move that results in the best board state for white
+      // Define a "set" as the grouping of moves that can come after a given move
       int index = -1;
-      for (int i = 0; i < possible3s.size(); i++) {
-        values2.add(getMin(values, index + 1, index + possible3s.get(i)));
-        index += possible3s.get(i);
-      }
-
-      // creates a list to store the min values from the sets of second moves
-      List<Integer> valuesFinal = new ArrayList<Integer>();
-
-      // loop to get all min values from sets of possible 2rd moves
-      // Define a "set" as the grouping of moves that can come after a given 1st/2nd move
-      index = -1;
+      ValueList<Integer> values2 = new ValueList<Integer>();
       for (int i = 0; i < possible2s.size(); i++) {
-        valuesFinal.add(getMax(values2, index + 1, index + possible2s.get(i)));
+        values2.add(getMax(values, index + 1, index + possible2s.get(i)));
         index += possible2s.get(i);
       }
-
-      int moveIndex = getMinIndex(moves, valuesFinal, color);
+      
+      int moveIndex = getMinIndex(moves, values2, color);
 
       // in the case of a stalemate/checkmate, return an int[] of 4 -1's
       if (moveIndex == -1) {
