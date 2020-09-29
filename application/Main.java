@@ -2062,6 +2062,7 @@ public class Main extends Application {
         if (isCheckMate(2, tiles2)) {
           values.add(99);
           possible2s.add(1);
+          index++;
           continue;
         }
       }
@@ -2070,6 +2071,7 @@ public class Main extends Application {
       else if (isStaleMate(2, tiles2)) {
         values.add(0);
         possible2s.add(1);
+        index++;
         continue;
       }
       moves2 = getAllLegalMoves(2, tiles2);
@@ -2081,6 +2083,7 @@ public class Main extends Application {
         if (isCheck(1, tiles)) {
           if (isCheckMate(1, tiles3)) {
             values.add(-99);
+            index++;
             continue;
           }
         }
@@ -2088,6 +2091,7 @@ public class Main extends Application {
         // all the remaining iterations of possible to 1
         else if (isStaleMate(1, tiles3)) {
           values.add(0);
+          index++;
           continue;
         }
         moves3 = getAllLegalMoves(1, tiles3);
@@ -2096,20 +2100,20 @@ public class Main extends Application {
           // if this move results in a checkmate, record a 99 in values
           if (isCheck(2, tiles4)) {
             if (isCheckMate(2, tiles4)) {
-              values.add(99);
+              values.addGreatest(index, 99);
               continue;
             }
           }
           // else if this move results in a stalemate, record a 0 in values
           else if (isStaleMate(2, tiles4)) {
-            values.add(0);
+            values.addGreatest(index, 0);
             continue;
           }
 
           // if no check/stalemate is found, add the value to the list
           values.addGreatest(index, (Integer)getBoardValue(tiles4));
         }
-        index += 1; // increments the index after each set of first moves
+        index += 1; // increments the index after each set of third moves
       }
     }
     
@@ -2147,8 +2151,9 @@ public class Main extends Application {
       // all the remaining iterations of possible to 1
       if (isCheck(1, tiles2)) {
         if (isCheckMate(1, tiles2)) {
-          values.add(99);
+          values.add(-99);
           possible2s.add(1);
+          index++;
           continue;
         }
       }
@@ -2157,6 +2162,7 @@ public class Main extends Application {
       else if (isStaleMate(1, tiles2)) {
         values.add(0);
         possible2s.add(1);
+        index++;
         continue;
       }
       moves2 = getAllLegalMoves(1, tiles2);
@@ -2167,7 +2173,8 @@ public class Main extends Application {
         // all the remaining iterations of possible to 1
         if (isCheck(2, tiles)) {
           if (isCheckMate(2, tiles3)) {
-            values.add(-99);
+            values.add(99);
+            index++;
             continue;
           }
         }
@@ -2175,6 +2182,7 @@ public class Main extends Application {
         // all the remaining iterations of possible to 1
         else if (isStaleMate(2, tiles3)) {
           values.add(0);
+          index++;
           continue;
         }
         moves3 = getAllLegalMoves(2, tiles3);
@@ -2183,20 +2191,20 @@ public class Main extends Application {
           // if this move results in a checkmate, record a 99 in values
           if (isCheck(1, tiles4)) {
             if (isCheckMate(1, tiles4)) {
-              values.add(-99);
+              values.addLowest(index, -99);
               continue;
             }
           }
           // else if this move results in a stalemate, record a 0 in values
           else if (isStaleMate(1, tiles4)) {
-            values.add(0);
+            values.addLowest(index, 0);
             continue;
           }
 
           // if no check/stalemate is found, add the value to the list
           values.addLowest(index, (Integer)getBoardValue(tiles4));
         }
-        index += 1; // increments the index after each set of first moves 
+        index += 1; // increments the index after each set of third moves 
       }
     }
     
@@ -2242,6 +2250,10 @@ public class Main extends Application {
       int index = -1;
       ValueList<Integer> values2 = new ValueList<Integer>();
       for (int i = 0; i < possible2s.size(); i++) {
+        int sum = 0;
+        for (int p = 0; p < possible2s.size(); p++) {
+          sum += possible2s.get(p);
+        }
         values2.add(getMin(values, index + 1, index + possible2s.get(i)));
         index += possible2s.get(i);
       }
