@@ -2080,7 +2080,7 @@ public class Main extends Application {
         Tile[][] tiles3 = fakeMove(move2, tiles2);
         // if this move results in a checkmate, record a -99 in values, and set
         // all the remaining iterations of possible to 1
-        if (isCheck(1, tiles)) {
+        if (isCheck(1, tiles3)) {
           if (isCheckMate(1, tiles3)) {
             values.add(-99);
             index++;
@@ -2171,7 +2171,7 @@ public class Main extends Application {
         Tile[][] tiles3 = fakeMove(move2, tiles2);
         // if this move results in a checkmate, record a -99 in values, and set
         // all the remaining iterations of possible to 1
-        if (isCheck(2, tiles)) {
+        if (isCheck(2, tiles3)) {
           if (isCheckMate(2, tiles3)) {
             values.add(99);
             index++;
