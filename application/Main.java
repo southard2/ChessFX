@@ -1721,18 +1721,18 @@ public class Main extends Application {
     Image DBK = new Image(image210);
     FileInputStream image310 = new FileInputStream("./images/LBK.png");
     Image LBK = new Image(image310);
-    
-    
+
+
     // saves the piece/piece color of the "to"/"from" tiles, and adjusts the values in that tile to
     // be a blank dark/light tile
     int piece = tiles[fromI][fromJ].getPiece();
     int pieceColor = tiles[fromI][fromJ].getPieceColor();
     tiles[fromI][fromJ].setPiece(0, 0);
-    
+
     // saves the move as the new "last" move
     last = new int[] {fromI, fromJ, toI, toJ, piece};
     
-    if (castling && piece == K) {
+    if (piece == K && Math.abs(fromJ - toJ) > 1) {
       if (toJ == 2) {
         tiles[fromI][3].setPiece(pieceColor, R);
         tiles[fromI][0].setPiece(0, 0);
@@ -1790,7 +1790,7 @@ public class Main extends Application {
 
     // if a castle move is performed, set the spot the rook was at to a blank tile, and set the rook
     // to be next to the king
-    if (castling && piece == K) {
+    if (piece == K && Math.abs(fromJ - toJ) > 1) {
       if (pieceColor == 1) {
         if (toJ == 2) {
           Button corner = getButton(fromI, 0);
@@ -1831,7 +1831,7 @@ public class Main extends Application {
           img2.setFitWidth(80);
           nextToKing.setGraphic(img2);
         } else if (toJ == 6) {
-          Button corner = getButton(fromI, 8);
+          Button corner = getButton(fromI, 7);
           ImageView img = new ImageView(DarkTile);
           img.setFitHeight(80);
           img.setFitWidth(80);
@@ -2368,9 +2368,11 @@ public class Main extends Application {
     }
     
     for (int i = 0; i < moveIndexes.length; i++) {
+      int index = moveIndexes[i]; // saves the index of the current move
+      
       // prioritizes castling, else deprioritizes moving the king
-      if (tiles[moves.get(i)[0]][moves.get(i)[1]].getPiece() == K) {
-        if (Math.abs(moves.get(i)[1] - moves.get(i)[3]) > 1) {
+      if (tiles[moves.get(index)[0]][moves.get(index)[1]].getPiece() == K) {
+        if (Math.abs(moves.get(index)[1] - moves.get(index)[3]) > 1) {
           if (color == 1) {
             valuesCorrected.set(i, valuesCorrected.get(i) + 5);
           } else {
@@ -2384,25 +2386,27 @@ public class Main extends Application {
           }
         }
         // prioritizes pawn promotion when on the opposite side of the board
-      } else if (tiles[moves.get(i)[0]][moves.get(i)[1]].getPiece() == P && color == 1 && moves.get(i)[0] < 4) {
+      } else if (tiles[moves.get(index)[0]][moves.get(index)[1]].getPiece() == P && color == 1
+          && moves.get(index)[0] < 4) {
         valuesCorrected.set(i, valuesCorrected.get(i) + 3);
-      } else if (tiles[moves.get(i)[0]][moves.get(i)[1]].getPiece() == P && color == 2 && moves.get(i)[0] > 4) {
+      } else if (tiles[moves.get(index)[0]][moves.get(index)[1]].getPiece() == P && color == 2
+          && moves.get(index)[0] > 3) {
         valuesCorrected.set(i, valuesCorrected.get(i) - 3);
-        
+
         // prioritizes moves towards the center of the board
-      } else if (moves.get(i)[3] == 4 || moves.get(i)[3] == 3) {
+      } else if (moves.get(index)[3] == 4 || moves.get(index)[3] == 3) {
         if (color == 1) {
           valuesCorrected.set(i, valuesCorrected.get(i) + 2);
         } else {
           valuesCorrected.set(i, valuesCorrected.get(i) - 2);
         }
-      } else if (moves.get(i)[3] == 2 || moves.get(i)[3] == 5) {
+      } else if (moves.get(index)[3] == 2 || moves.get(index)[3] == 5) {
         if (color == 1) {
           valuesCorrected.set(i, valuesCorrected.get(i) + 2);
         } else {
           valuesCorrected.set(i, valuesCorrected.get(i) - 2);
         }
-      } else if (moves.get(i)[3] == 1 || moves.get(i)[3] == 6) {
+      } else if (moves.get(index)[3] == 1 || moves.get(index)[3] == 6) {
         if (color == 1) {
           valuesCorrected.set(i, valuesCorrected.get(i) + 1);
         } else {
@@ -2411,7 +2415,7 @@ public class Main extends Application {
       }
       
       // prioritizes moves that take a piece
-      if (tiles[moves.get(i)[2]][moves.get(i)[3]].getPieceColor() != 0) {
+      if (tiles[moves.get(index)[2]][moves.get(index)[3]].getPieceColor() != 0) {
         valuesCorrected.set(i, valuesCorrected.get(i) + 4);
       }
     }
@@ -2442,9 +2446,11 @@ public class Main extends Application {
     }
     
     for (int i = 0; i < moveIndexes.length; i++) {
+      int index = moveIndexes[i]; // saves the index of the current move
+      
       // prioritizes castling, else deprioritizes moving the king
-      if (tiles[moves.get(i)[0]][moves.get(i)[1]].getPiece() == K) {
-        if (Math.abs(moves.get(i)[1] - moves.get(i)[3]) > 1) {
+      if (tiles[moves.get(index)[0]][moves.get(index)[1]].getPiece() == K) {
+        if (Math.abs(moves.get(index)[1] - moves.get(index)[3]) > 1) {
           if (color == 1) {
             valuesCorrected.set(i, valuesCorrected.get(i) + 4);
           } else {
@@ -2458,25 +2464,27 @@ public class Main extends Application {
           }
         }
         // prioritizes pawn promotion when on the opposite side of the board
-      } else if (tiles[moves.get(i)[0]][moves.get(i)[1]].getPiece() == P && color == 1 && moves.get(i)[0] < 4) {
+      } else if (tiles[moves.get(index)[0]][moves.get(index)[1]].getPiece() == P && color == 1
+          && moves.get(index)[0] < 4) {
         valuesCorrected.set(i, valuesCorrected.get(i) + 3);
-      } else if (tiles[moves.get(i)[0]][moves.get(i)[1]].getPiece() == P && color == 2 && moves.get(i)[0] > 4) {
+      } else if (tiles[moves.get(index)[0]][moves.get(index)[1]].getPiece() == P && color == 2
+          && moves.get(index)[0] > 4) {
         valuesCorrected.set(i, valuesCorrected.get(i) - 3);
-        
+
         // prioritizes moves towards the center of the board
-      } else if (moves.get(i)[3] == 4 || moves.get(i)[3] == 3) {
+      } else if (moves.get(index)[3] == 4 || moves.get(index)[3] == 3) {
         if (color == 1) {
           valuesCorrected.set(i, valuesCorrected.get(i) + 2);
         } else {
           valuesCorrected.set(i, valuesCorrected.get(i) - 2);
         }
-      } else if (moves.get(i)[3] == 2 || moves.get(i)[3] == 5) {
+      } else if (moves.get(index)[3] == 2 || moves.get(index)[3] == 5) {
         if (color == 1) {
           valuesCorrected.set(i, valuesCorrected.get(i) + 2);
         } else {
           valuesCorrected.set(i, valuesCorrected.get(i) - 2);
         }
-      } else if (moves.get(i)[3] == 1 || moves.get(i)[3] == 6) {
+      } else if (moves.get(index)[3] == 1 || moves.get(index)[3] == 6) {
         if (color == 1) {
           valuesCorrected.set(i, valuesCorrected.get(i) + 1);
         } else {
@@ -2582,7 +2590,7 @@ public class Main extends Application {
     int min = 10000;
     // creates a list to store the indexes of all values that are equal
     List<Integer> indexes = new ArrayList<Integer>();
-    
+
     for (int i = 0; i < values.size(); i++) {
       // if the value is lesser than the current min, save the index of that value as the new index
       // clear out the current list of equal indexes, and add the new index to the list
@@ -2671,27 +2679,27 @@ public class Main extends Application {
         indexes.add(i);
       }
     }
-    
+
     // returns -1 if no value is found
     if (index == -1) {
       return index;
     }
-    
+
     // gets a random index from the list of equal valued indexes to return
     return indexes.get(r.nextInt(indexes.size()));
   }
-  
+
   /**
    * Simulates a move on the board by returning a copy of what the tiles array would look like after
    * the given move
    * 
-   * @param move - the given move to be simulated
+   * @param move  - the given move to be simulated
    * @param tiles - the tiles array before the move
    * @return Tile[][] representation of the board after the given move
    */
   private Tile[][] fakeMove(int[] move, Tile[][] tiles) {
     Tile[][] newTiles = copyTiles(tiles);
-    
+
     int fromI = move[0];
     int fromJ = move[1];
     int toI = move[2];
