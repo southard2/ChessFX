@@ -1294,6 +1294,64 @@ public class Main extends Application {
     return moves;
   }
   
+  private List<int[]> getPawnTakingMoves(int i, int j, int color, Tile[][] tiles) {
+    // creates a list to store moves in
+    List<int[]> moves = new ArrayList<int[]>();
+    
+    if (color == 1) {
+      if (j < 7) {
+        moves.add(new int[] {i - 1, j + 1});
+      } if (j > 0) {
+        moves.add(new int[] {i - 1, j - 1});
+      }
+    } else {
+      if (j < 7) {
+        moves.add(new int[] {i + 1, j + 1});
+      } if (j > 0) {
+        moves.add(new int[] {i + 1, j - 1});
+      }
+    }
+    
+    return moves; // returns the taking moves
+  }
+  
+  /**
+   * Gets all possible taking moves for a player
+   * 
+   * @param color - the color to move
+   * @param tiles - the current board state
+   * @return the list of all moves (not including pawns moving forwards
+   */
+  private List<int[]> getAllTakingMoves(int color, Tile[][] tiles) {
+    // creates a list to store all the legal moves a color has
+    List<int[]> moves = new ArrayList<int[]>();
+
+    // goes through each tile, checking to see if the piece color on the tile matches the given
+    // color, if it does, it checks for moves that can be made by the piece on the tile and adds
+    // them to the list
+    for (int i = 0; i < 8; i++) {
+      for (int j = 0; j < 8; j++) {
+        if (tiles[i][j].getPieceColor() == color) {
+          if (tiles[i][j].getPiece() == P) {
+            moves.addAll(getPawnTakingMoves(i, j, color, tiles));
+          } else if (tiles[i][j].getPiece() == N) {
+            moves.addAll(getKnightMoves(i, j, color, tiles));
+          } else if (tiles[i][j].getPiece() == B) {
+            moves.addAll(getBishopMoves(i, j, color, tiles));
+          } else if (tiles[i][j].getPiece() == R) {
+            moves.addAll(getRookMoves(i, j, color, tiles));
+          } else if (tiles[i][j].getPiece() == Q) {
+            moves.addAll(getQueenMoves(i, j, color, tiles));
+          } else if (tiles[i][j].getPiece() == K) {
+            moves.addAll(getKingMoves(i, j, color, tiles));
+          }
+        }
+      }
+    }
+    
+    return moves;
+  }
+  
   /**
    * Checks to see if a piece at tiles[i][j] is in "check" (whether it is a king or not)
    * 
@@ -1307,7 +1365,7 @@ public class Main extends Application {
     List<int[]> moves;
 
     if (pieceColor == 1) { // if the piece is white
-      moves = getAllMoves(2, tiles); // gets all black moves
+      moves = getAllTakingMoves(2, tiles); // gets all black moves
       // checks each move to see if it could take the piece (if the piece's location is a possible
       // move)
       for (int[] move : moves) {
@@ -1316,7 +1374,7 @@ public class Main extends Application {
         }
       }
     } else { // else the piece is black
-      moves = getAllMoves(1, tiles); // gets all white moves
+      moves = getAllTakingMoves(1, tiles); // gets all white moves
       // checks each move to see if it could take the piece (if the piece's location is a possible
       // move)
       for (int[] move : moves) {
