@@ -2036,13 +2036,13 @@ public class Main extends Application {
       if (pieceColor == 1) {
         passanted = getButton(toI + 1, toJ);
         tiles[toI + 1][toJ].setPiece(0, 0);
-        if (toI + 1 % 2 == toJ % 2) { // these tiles are all dark
-          ImageView img = new ImageView(DarkTile);
+        if ((toI + 1) % 2 == toJ % 2) {
+          ImageView img = new ImageView(LightTile);
           img.setFitHeight(80);
           img.setFitWidth(80);
           passanted.setGraphic(img);
         } else {
-          ImageView img = new ImageView(LightTile);
+          ImageView img = new ImageView(DarkTile);
           img.setFitHeight(80);
           img.setFitWidth(80);
           passanted.setGraphic(img);
@@ -2050,13 +2050,13 @@ public class Main extends Application {
       } else {
         passanted = getButton(toI - 1, toJ);
         tiles[toI - 1][toJ].setPiece(0, 0);
-        if (toI - 1 % 2 == toJ % 2) { // these tiles are all dark
-          ImageView img = new ImageView(DarkTile);
+        if ((toI - 1) % 2 == toJ % 2) { 
+          ImageView img = new ImageView(LightTile);
           img.setFitHeight(80);
           img.setFitWidth(80);
           passanted.setGraphic(img);
         } else {
-          ImageView img = new ImageView(LightTile);
+          ImageView img = new ImageView(DarkTile);
           img.setFitHeight(80);
           img.setFitWidth(80);
           passanted.setGraphic(img);
@@ -2518,12 +2518,12 @@ public class Main extends Application {
   }
   
   /**
-   * Gets the max number in a list from given indexes
+   * Gets the min number in a list from given indexes
    * 
    * @param values - the list of integers being searched for a max
    * @param startIndex - the start index of the section being searched
    * @param endIndex - the end index of the section being searched
-   * @return - the highest int in the list
+   * @return - the lowest int in the list
    */
   private int getMin(List<Integer> values, int startIndex, int endIndex) {
     int min = 100000;
@@ -2873,6 +2873,15 @@ public class Main extends Application {
     
     // plays the move
     try {
+      // ensures that en passant moves are handled correctly
+      if (tiles[move[2]][move[3]].getPiece() == P && canEnPassant(move[3], 1) && move[1] != move[3]
+          && tiles[move[2]][move[3]].getPieceColor() == 0) {
+        passanting = true;
+      } else {
+        passanting = false;
+      }
+      
+      // moves, updates GUI
       move(move[0], move[1], move[2], move[3]);
       whiteToPlay = false;
       toPlay.setText("Black to play! White played to " + file[move[3]] + rank[move[2]]);
@@ -2916,6 +2925,15 @@ public class Main extends Application {
     }
     
     try {
+      // ensures en passant moves handled correctly
+      if (tiles[move[2]][move[3]].getPiece() == P && canEnPassant(move[3], 2) && move[1] != move[3]
+          && tiles[move[2]][move[3]].getPieceColor() == 0) {
+        passanting = true;
+      } else {
+        passanting = false;
+      }
+      
+      // moves, updates GUI as a normal move would
       move(move[0], move[1], move[2], move[3]);
       whiteToPlay = true;
       toPlay.setText("White to play! Black played to " + file[move[3]] + rank[move[2]]);
