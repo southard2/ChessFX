@@ -710,6 +710,7 @@ public class Main extends Application {
         } catch (FileNotFoundException e) {
           e.printStackTrace();
         }
+        // updates GUI after a white move
         if (whiteToPlay) {
           whiteToPlay = false;
           toPlay.setText("Black to play! White played to " + file[j] + rank[i]);
@@ -726,7 +727,7 @@ public class Main extends Application {
           } else {
             check.setText("");
           }
-        } else {
+        } else { // updates GUI after a black move
           whiteToPlay = true;
           toPlay.setText("White to play! Black played to " + file[j] + rank[i]);
           tryAgain.setText("");
@@ -744,6 +745,7 @@ public class Main extends Application {
           }
         }
       }
+      // displays an output to user if illegal move is attempted
       else {
         pressed = NONE;
         tryAgain.setText(
