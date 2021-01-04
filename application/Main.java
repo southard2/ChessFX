@@ -10,45 +10,25 @@
  */
 package application;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
-import java.util.Scanner;
 import java.util.Stack;
 import javafx.application.Application;
-import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
-import javafx.scene.canvas.Canvas;
-import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.ScrollPane.ScrollBarPolicy;
-import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
 /**
@@ -57,8 +37,6 @@ import javafx.stage.Stage;
  * @author Danny Southard
  */
 public class Main extends Application {
-  private List<String> args;
-
   // represents no button (tile) having been selected
   public static final int[] NONE = new int[] {-1, -1};
   // used to track the last button pressed
@@ -115,8 +93,7 @@ public class Main extends Application {
   public final int K = 5;
 
   public void start(Stage arg0) throws Exception {
-    // saves command-line arguments
-    args = this.getParameters().getRaw();
+    this.getParameters().getRaw();
 
     // initializes a gridpane to display a chessboard
     board = new GridPane();
@@ -240,14 +217,10 @@ public class Main extends Application {
     Image DWR = new Image(image22);
     FileInputStream image32 = new FileInputStream("./images/LWR.png");
     Image LWR = new Image(image32);
-    FileInputStream image23 = new FileInputStream("./images/DwQ.png");
-    Image DWQ = new Image(image23);
     FileInputStream image33 = new FileInputStream("./images/LWQ.png");
     Image LWQ = new Image(image33);
     FileInputStream image24 = new FileInputStream("./images/DwK.png");
     Image DWK = new Image(image24);
-    FileInputStream image34 = new FileInputStream("./images/LWK.png");
-    Image LWK = new Image(image34);
     FileInputStream image25 = new FileInputStream("./images/DBP.png");
     Image DBP = new Image(image25);
     FileInputStream image35 = new FileInputStream("./images/LBP.png");
@@ -266,10 +239,6 @@ public class Main extends Application {
     Image LBR = new Image(image38);
     FileInputStream image29 = new FileInputStream("./images/DBQ.png");
     Image DBQ = new Image(image29);
-    FileInputStream image39 = new FileInputStream("./images/LBQ.png");
-    Image LBQ = new Image(image39);
-    FileInputStream image210 = new FileInputStream("./images/DBK.png");
-    Image DBK = new Image(image210);
     FileInputStream image310 = new FileInputStream("./images/LBK.png");
     Image LBK = new Image(image310);
 
@@ -1505,42 +1474,6 @@ public class Main extends Application {
   }
 
   /**
-   * Gets all the possible moves for a player
-   * 
-   * @param color - the color of the player's pieces whose moves are being gotten
-   * @return a list of all possible moves for the given color
-   */
-  private List<int[]> getAllMoves(int color, Tile[][] tiles) {
-    // creates a list to store all the legal moves a color has
-    List<int[]> moves = new ArrayList<int[]>();
-
-    // goes through each tile, checking to see if the piece color on the tile matches the given
-    // color, if it does, it checks for moves that can be made by the piece on the tile and adds
-    // them to the list
-    for (int i = 0; i < 8; i++) {
-      for (int j = 0; j < 8; j++) {
-        if (tiles[i][j].getPieceColor() == color) {
-          if (tiles[i][j].getPiece() == P) {
-            moves.addAll(getPawnMoves(i, j, color, tiles));
-          } else if (tiles[i][j].getPiece() == N) {
-            moves.addAll(getKnightMoves(i, j, color, tiles));
-          } else if (tiles[i][j].getPiece() == B) {
-            moves.addAll(getBishopMoves(i, j, color, tiles));
-          } else if (tiles[i][j].getPiece() == R) {
-            moves.addAll(getRookMoves(i, j, color, tiles));
-          } else if (tiles[i][j].getPiece() == Q) {
-            moves.addAll(getQueenMoves(i, j, color, tiles));
-          } else if (tiles[i][j].getPiece() == K) {
-            moves.addAll(getKingMoves(i, j, color, tiles));
-          }
-        }
-      }
-    }
-
-    return moves;
-  }
-
-  /**
    * Gets a list of possible moves for a color that includes the tile the piece is being moved from
    * 
    * NOTE: this was made when I realized the getAllMoves method did not work for the isCheckMate
@@ -2081,7 +2014,7 @@ public class Main extends Application {
     // checks each child to get the one with matching constraints, and returns the button which
     // is found at i, j on the gridpane
     for (Node node : children) {
-      if (board.getRowIndex(node) == i && board.getColumnIndex(node) == j) {
+      if (GridPane.getRowIndex(node) == i && GridPane.getColumnIndex(node) == j) {
         return (Button) node;
       }
     }
@@ -2312,10 +2245,6 @@ public class Main extends Application {
       int index = -1;
       ValueList<Integer> values2 = new ValueList<Integer>();
       for (int i = 0; i < possible2s.size(); i++) {
-        int sum = 0;
-        for (int p = 0; p < possible2s.size(); p++) {
-          sum += possible2s.get(p);
-        }
         values2.add(getMin(values, index + 1, index + possible2s.get(i)));
         index += possible2s.get(i);
       }
